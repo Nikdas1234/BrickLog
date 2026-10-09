@@ -1,7 +1,5 @@
 # BrickLog v1 — Umsetzungsplan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Eine installierbare, offline lauffähige Web-App, in der Niklas gekaufte Klemmbaustein-Sets mit Stammdaten, Bautagebuch samt Fotos, Wunschliste und Statistik auf seinem Samsung-Handy führt.
 
 **Architecture:** Die gesamte Fachlogik liegt als reine, getestete TypeScript-Module in `src/lib` (Daten, Statusregeln, Statistik, Sicherung). Die Svelte-Oberfläche in `src/routes` und `src/components` ruft nur diese Module auf und enthält selbst keine Regeln. Alle Daten liegen in einer IndexedDB-Datenbank im Browser; es gibt keinen Server.
