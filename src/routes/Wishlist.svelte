@@ -1,6 +1,7 @@
 <script lang="ts">
   import WishRow from '../components/WishRow.svelte';
   import { getDb } from '../lib/context';
+  import { coverJobs } from '../lib/coverJobs.svelte';
   import { listSets } from '../lib/db';
   import { formatEuro, plural } from '../lib/format';
   import { href } from '../lib/router';
@@ -12,8 +13,12 @@
   let wishes = $state.raw<BrickSet[] | null>(null);
   let sortBy = $state<'priority' | 'price'>('priority');
 
-  listSets(db).then((all) => {
-    wishes = all.filter((s) => s.status === 'wunsch');
+  // Also runs again when a cover picture arrives that was fetched in the background.
+  $effect(() => {
+    void coverJobs.finished;
+    listSets(db).then((all) => {
+      wishes = all.filter((s) => s.status === 'wunsch');
+    });
   });
 
   const sorted = $derived(sortWishlist(wishes ?? [], sortBy));

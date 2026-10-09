@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.5.1. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 09.10.2026:** Version 1.6.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -89,11 +89,21 @@ erzeugen und im Teilen-Dialog in „Eigene Dateien“ oder auf Google Drive able
 | Statistik | Anzahl, Teile, Ausgaben, Bauzeit, Aufteilung nach Hersteller. |
 | Einstellungen | Sicherung exportieren und einspielen, Herstellerliste pflegen. |
 
-Beim Anlegen eines Sets oder Wunschs lässt sich ein **Set von BlueBrixx oder Lumibricks
-aus dem Katalog übernehmen**: Setnummer oder Name ins Suchfeld tippen, Treffer antippen.
-Name, Nummer, Reihe, Teilezahl, Preis und Titelbild werden ausgefüllt, bei Wünschen auch
-der Shop-Link. Der Preis ist der Shop-Preis und bleibt änderbar. Die Kataloge sind Abzüge der Shops; Sets, die ein Shop nicht mehr führt,
-fehlen darin. BlueBrixx-Titelbilder lädt nur die Android-App, nicht die Web-App.
+Beim Anlegen eines Sets oder Wunschs lässt sich ein **Set aus dem Katalog übernehmen**:
+Setnummer oder Name ins Suchfeld tippen, Treffer antippen. Name, Hersteller, Nummer, Reihe,
+Teilezahl und Preis werden ausgefüllt, bei Wünschen auch der Shop-Link. Der Preis ist der
+Shop-Preis und bleibt änderbar. Das Titelbild wird nach dem Speichern im Hintergrund
+geladen.
+
+Was die Kataloge enthalten:
+
+- **Lumibricks** (128 Sets) aus dem Lumibricks-Shop.
+- **BlueBrixx-Shop** (1.007 Sets): 746 der Eigenmarken und 261 fremder Marken, die der
+  Shop führt (Modbrix, Cobi, Balody, BRYX …). Bei den fremden Marken ist die Nummer die
+  Artikelnummer im BlueBrixx-Shop, nicht die Setnummer auf dem Karton; die App weist
+  darauf hin. Einzelteil-Pakete und Grundplatten sind nicht enthalten.
+- Es sind Abzüge der Shops. Sets, die ein Shop nicht mehr führt, fehlen darin.
+- Titelbilder aus dem BlueBrixx-Shop lädt nur die Android-App, nicht die Web-App.
 
 Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
@@ -131,8 +141,8 @@ pushen; die Apps holen sie sich.
 - `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Filter und
   Sortierung (`sets.ts`), Katalogsuche, Statistik, Fotoverkleinerung, Sicherung. Dazu
   gehören die Tests in `tests`.
-- `src/data` — die Kataloge als Abzüge: Lumibricks (128 Sets) und BlueBrixx (746 Sets),
-  Stand jeweils in der Datei.
+- `src/data` — die Kataloge als Abzüge: Lumibricks (128 Sets) und BlueBrixx-Shop
+  (1.007 Sets), Stand jeweils in der Datei.
 - `src/routes` — die sieben Seiten der App.
 - `src/components` — wiederverwendete Bausteine (Reiterleiste, Dialog, Fotoanzeige …).
 - `android` — das Android-Projekt, also die Hülle um die Web-App. Icons und Startbild

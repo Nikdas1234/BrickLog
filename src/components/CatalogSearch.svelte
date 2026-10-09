@@ -18,7 +18,7 @@
 
   function describe(entry: CatalogEntry): string {
     return [
-      `${entry.manufacturer} ${entry.number}`,
+      `${entry.manufacturer} ${entry.shopNumber ? 'BlueBrixx-Nr. ' : ''}${entry.number}`.trim(),
       entry.theme,
       entry.pieces ? `${entry.pieces.toLocaleString('de-DE')} Teile` : '',
       entry.priceCents ? `${entry.priceEstimated ? 'ca. ' : ''}${formatEuro(entry.priceCents)}` : '',
@@ -35,7 +35,7 @@
 
 <div class="catalog card">
   <label class="field">
-    <span>Aus dem Katalog übernehmen (BlueBrixx, Lumibricks)</span>
+    <span>Aus dem Katalog übernehmen (BlueBrixx-Shop, Lumibricks)</span>
     <input type="search" bind:value={query} placeholder="Setnummer oder Name" autocomplete="off" />
   </label>
 

@@ -3,6 +3,7 @@
   import PhotoImg from '../components/PhotoImg.svelte';
   import PhotoViewer from '../components/PhotoViewer.svelte';
   import { getDb } from '../lib/context';
+  import { coverJobs } from '../lib/coverJobs.svelte';
   import { deletePhoto, deleteSet, getSet, listEntries, listPhotos, putSet, replaceCover } from '../lib/db';
   import { euroInput, formatDate, formatEuro, formatMinutes, parseEuro, plural, todayIso } from '../lib/format';
   import { resizeToJpeg } from '../lib/photos';
@@ -42,7 +43,11 @@
     entries = loadedEntries;
     set = loaded;
   }
-  load();
+  // Also runs again when a cover picture arrives that was fetched in the background.
+  $effect(() => {
+    void coverJobs.finished;
+    void load();
+  });
 
   const isWish = $derived(set?.status === 'wunsch');
   const totalMinutes = $derived(entries.reduce((sum, e) => sum + (e.minutes ?? 0), 0));
@@ -148,6 +153,7 @@
     >
       <PhotoImg id={set.coverPhotoId} alt="Titelbild" />
     </button>
+    {#if coverJobs.pending.includes(set.id)}<p class="muted small" role="status">Titelbild wird geladen …</p>{/if}
 
     <div class="title">
       <h1>{set.name}</h1>

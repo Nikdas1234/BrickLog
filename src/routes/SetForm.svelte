@@ -2,11 +2,11 @@
   import CatalogSearch from '../components/CatalogSearch.svelte';
   import SuggestInput from '../components/SuggestInput.svelte';
   import type { CatalogEntry } from '../lib/catalog';
-  import { canDownloadImage, downloadCatalogImage } from '../lib/catalogImage';
+  import { canDownloadImage } from '../lib/catalogImage';
   import { getDb } from '../lib/context';
-  import { getManufacturers, getSet, listSets, putSet, replaceCover, setManufacturers } from '../lib/db';
+  import { startCoverDownload } from '../lib/coverJobs.svelte';
+  import { getManufacturers, getSet, listSets, putSet, setManufacturers } from '../lib/db';
   import { euroInput, parseCount, parseEuro } from '../lib/format';
-  import { resizeToJpeg } from '../lib/photos';
   import { replaceRoute } from '../lib/router';
   import { newSet, suggestions } from '../lib/sets';
   import { PRIORITIES, PRIORITY_LABEL, type BrickSet } from '../lib/types';
@@ -79,18 +79,6 @@
     errors = {};
   }
 
-  // Needs an internet connection. Without one the set is saved without a picture.
-  async function downloadCover(setId: string, entry: CatalogEntry) {
-    try {
-      const blob = await downloadCatalogImage(entry);
-      if (!blob) return;
-      const resized = await resizeToJpeg(new File([blob], 'katalogbild'));
-      await replaceCover(db, { id: crypto.randomUUID(), setId, createdAt: new Date().toISOString(), ...resized });
-    } catch {
-      // Unreadable picture: the cover can be added later on the set page.
-    }
-  }
-
   async function save(event: SubmitEvent) {
     event.preventDefault();
     if (!draft || saving) return;
@@ -130,7 +118,8 @@
       await setManufacturers(db, [...knownManufacturers, next.manufacturer]);
     }
     await putSet(db, next);
-    if (id === null && picked && withPicture) await downloadCover(next.id, picked);
+    // The picture is fetched in the background; saving does not wait for the network.
+    if (id === null && picked && withPicture && canDownloadImage(picked)) startCoverDownload(db, next.id, picked);
     if (id) history.back();
     else replaceRoute({ page: 'set', id: next.id });
   }
@@ -156,7 +145,7 @@
             {#if !picked.image || !withPicture}
               Ohne Titelbild.
             {:else if canDownloadImage(picked)}
-              Das Bild wird beim Speichern als Titelbild geladen (nur mit Internetverbindung).
+              Das Bild wird nach dem Speichern als Titelbild geladen (nur mit Internetverbindung).
             {:else}
               Bilder von {picked.manufacturer} lassen sich nur in der Android-App als Titelbild übernehmen.
             {/if}
@@ -165,6 +154,9 @@
                 ? 'Der Preis ist ein Richtwert aus dem Shop, umgerechnet aus US-Dollar.'
                 : 'Der Preis ist der Preis im Shop zum Stand des Katalogs.'}
               {#if !isWish}Ändere ihn, falls du etwas anderes gezahlt hast.{/if}
+            {/if}
+            {#if picked.shopNumber}
+              Die Setnummer ist die Artikelnummer im BlueBrixx-Shop, nicht die Nummer auf dem Karton.
             {/if}
           </p>
           {#if picked.image && withPicture && canDownloadImage(picked)}

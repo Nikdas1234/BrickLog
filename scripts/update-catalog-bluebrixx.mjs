@@ -7,8 +7,10 @@
 // tile. So we read the category pages (a few hundred requests) instead of every single
 // product page (about 5,000).
 //
-// Only BlueBrixx's own brands are kept. The shop also sells other manufacturers, but
-// under BlueBrixx article numbers that are not the numbers printed on those boxes.
+// Sets of other manufacturers that the shop sells are kept too, marked with their brand.
+// Their number is the BlueBrixx article number, not the one printed on their boxes.
+// Left out: loose bricks and baseplates (part packs), and Lumibricks, which has its own
+// catalog with the real set numbers.
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -153,10 +155,11 @@ for (const url of subUrls) {
 const skippedBrands = {};
 const entries = [];
 for (const product of products.values()) {
-  if (!/^bluebrixx/i.test(product.brand)) {
-    skippedBrands[product.brand || '(ohne Marke)'] = (skippedBrands[product.brand || '(ohne Marke)'] ?? 0) + 1;
+  if (/part-?packs/i.test(product.brand) || /^lumibricks$/i.test(product.brand)) {
+    skippedBrands[product.brand] = (skippedBrands[product.brand] ?? 0) + 1;
     continue;
   }
+  const ownBrand = /^bluebrixx/i.test(product.brand);
   if (product.name === '') continue;
   const sub = subOf.get(product.number);
   const top = sub?.parent || topOf.get(product.number) || '';
@@ -173,6 +176,8 @@ for (const product of products.values()) {
     priceCents: product.priceCents,
     image: product.image,
     slug: product.slug,
+    // Only present for other manufacturers. "Others" is the shop's catch-all.
+    ...(ownBrand ? {} : { brand: /^others$/i.test(product.brand) ? '' : product.brand }),
   });
 }
 entries.sort((a, b) => Number(a.number) - Number(b.number));
@@ -188,6 +193,9 @@ const catalog = {
 writeFileSync(OUT, JSON.stringify(catalog) + '\n');
 
 const count = (test) => entries.filter(test).length;
-console.log(`\n${products.size} Artikel gelesen in ${requests} Abrufen, ${entries.length} BlueBrixx-Sets geschrieben nach ${OUT}`);
+console.log(`\n${products.size} Artikel gelesen in ${requests} Abrufen, ${entries.length} Sets geschrieben nach ${OUT}`);
 console.log(`ohne Teilezahl ${count((e) => e.pieces === null)}, ohne Preis ${count((e) => e.priceCents === null)}, ohne Bild ${count((e) => e.image === null)}, ohne Thema ${count((e) => e.theme === '')}`);
-console.log('Weggelassene Marken:', JSON.stringify(Object.fromEntries(Object.entries(skippedBrands).sort((a, b) => b[1] - a[1]))));
+const brands = {};
+for (const e of entries) brands[e.brand ?? 'BlueBrixx'] = (brands[e.brand ?? 'BlueBrixx'] ?? 0) + 1;
+console.log('Marken:', JSON.stringify(Object.fromEntries(Object.entries(brands).sort((a, b) => b[1] - a[1]))));
+console.log('Weggelassen:', JSON.stringify(Object.fromEntries(Object.entries(skippedBrands).sort((a, b) => b[1] - a[1]))));

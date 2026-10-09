@@ -1,6 +1,9 @@
 export interface CatalogEntry {
   manufacturer: string;
   number: string;
+  // True when `number` is only a shop's article number and not the set number the
+  // manufacturer prints on the box.
+  shopNumber: boolean;
   name: string;
   // Translated name from the German shop page; only used for searching.
   nameDe?: string;
@@ -45,6 +48,8 @@ interface BlueBrixxFile {
     image: string | null;
     // Last part of <source>/de/prod/<number>/<slug>/
     slug: string;
+    // Only set for sets of other manufacturers that the shop sells.
+    brand?: string;
   }[];
 }
 
@@ -55,6 +60,7 @@ export function fromLumibricks(file: LumibricksFile): CatalogEntry[] {
   return file.entries.map((entry) => ({
     ...entry,
     manufacturer: file.manufacturer,
+    shopNumber: false,
     priceEstimated: true,
     thumb: entry.image && withWidth(entry.image, 120),
     image: entry.image && withWidth(entry.image, 1600),
@@ -63,9 +69,10 @@ export function fromLumibricks(file: LumibricksFile): CatalogEntry[] {
 }
 
 export function fromBlueBrixx(file: BlueBrixxFile): CatalogEntry[] {
-  return file.entries.map(({ slug, image, ...entry }) => ({
+  return file.entries.map(({ slug, image, brand, ...entry }) => ({
     ...entry,
-    manufacturer: file.manufacturer,
+    manufacturer: brand ?? file.manufacturer,
+    shopNumber: brand !== undefined,
     priceEstimated: false,
     // The shop keeps ready-made thumbnails next to every picture.
     thumb: image && `${file.source}/thumbnail/${image.replace(/(\.\w+)$/, '_260x260$1')}`,

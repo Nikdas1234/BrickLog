@@ -1,6 +1,7 @@
 <script lang="ts">
   import SetCard from '../components/SetCard.svelte';
   import { getDb } from '../lib/context';
+  import { coverJobs } from '../lib/coverJobs.svelte';
   import { listSets } from '../lib/db';
   import { href } from '../lib/router';
   import { filterSets, suggestions } from '../lib/sets';
@@ -13,8 +14,12 @@
   let manufacturer = $state('');
   let theme = $state('');
 
-  listSets(db).then((all) => {
-    sets = all.filter((s) => s.status !== 'wunsch').sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Also runs again when a cover picture arrives that was fetched in the background.
+  $effect(() => {
+    void coverJobs.finished;
+    listSets(db).then((all) => {
+      sets = all.filter((s) => s.status !== 'wunsch').sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    });
   });
 
   const manufacturers = $derived(

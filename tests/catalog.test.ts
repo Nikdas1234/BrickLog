@@ -4,6 +4,7 @@ import { fromBlueBrixx, fromLumibricks, loadCatalog, searchCatalog, type Catalog
 const entry = (number: string, name: string, nameDe?: string): CatalogEntry => ({
   manufacturer: 'Lumibricks',
   number,
+  shopNumber: false,
   name,
   nameDe,
   theme: 'Test',
@@ -66,16 +67,23 @@ test('Lumibricks pictures are scaled by the image server', () => {
 });
 
 test('BlueBrixx addresses are rebuilt from the short form in the file', () => {
-  const [blue, bare] = fromBlueBrixx({
+  const [blue, bare, cobi, other] = fromBlueBrixx({
     manufacturer: 'BlueBrixx',
     source: 'https://www.bluebrixx.com',
     entries: [
       { number: '108932', name: 'Burg Blaustein: Festungsspitzen', theme: 'Mittelalter – Burg Blaustein', pieces: 834, priceCents: 2995, image: '5b/97/a0/1790062901/0d73.webp', slug: 'burg-blaustein-festungsspitzen' },
       { number: '100001', name: 'Ohne Bild', theme: '', pieces: null, priceCents: null, image: null, slug: 'ohne-bild' },
+      { number: '601234', name: 'Panzer IV', theme: 'Militär', pieces: 900, priceCents: 4995, image: null, slug: 'panzer-iv', brand: 'Cobi' },
+      { number: '601235', name: 'Irgendwas', theme: '', pieces: null, priceCents: 995, image: null, slug: 'irgendwas', brand: '' },
     ],
   });
+  // Sets of other manufacturers keep their brand; their number is the shop's.
+  expect(cobi).toMatchObject({ manufacturer: 'Cobi', shopNumber: true });
+  expect(cobi).not.toHaveProperty('brand');
+  expect(other).toMatchObject({ manufacturer: '', shopNumber: true });
   expect(blue).toMatchObject({
     manufacturer: 'BlueBrixx',
+    shopNumber: false,
     number: '108932',
     priceEstimated: false,
     imageCors: false,
@@ -92,14 +100,16 @@ test('the bundled catalogs are well-formed', async () => {
   const count = (manufacturer: string) => catalog.filter((e) => e.manufacturer === manufacturer).length;
   expect(count('Lumibricks')).toBeGreaterThan(100);
   expect(count('BlueBrixx')).toBeGreaterThan(500);
-  expect(count('Lumibricks') + count('BlueBrixx')).toBe(catalog.length);
   expect(new Set(catalog.map((e) => `${e.manufacturer}:${e.number}`)).size).toBe(catalog.length);
+  // Only sets of other manufacturers from the BlueBrixx shop carry a shop number.
+  for (const e of catalog) expect(e.shopNumber).toBe(e.manufacturer !== 'Lumibricks' && e.manufacturer !== 'BlueBrixx');
 
   for (const e of catalog) {
     expect(e.name.trim()).not.toBe('');
     if (e.pieces !== null) expect(Number.isInteger(e.pieces) && e.pieces > 0).toBe(true);
     if (e.priceCents !== null) expect(Number.isInteger(e.priceCents) && e.priceCents > 0).toBe(true);
-    if (e.manufacturer === 'Lumibricks') {
+    if (e.url.startsWith('https://www.lumibricks.com/')) {
+      expect(e.manufacturer).toBe('Lumibricks');
       expect(e.number).toMatch(/^[A-Z]?\d{4,5}\w*$/);
       expect(e.url).toMatch(/^https:\/\/www\.lumibricks\.com\//);
       if (e.image !== null) expect(e.image).toMatch(/^https:\/\/cdn\.shopify\.com\//);

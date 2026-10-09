@@ -14,7 +14,12 @@ export async function downloadCatalogImage(entry: CatalogEntry): Promise<Blob | 
   try {
     if (isNativeApp) {
       const { CapacitorHttp } = await import('@capacitor/core');
-      const response = await CapacitorHttp.get({ url: entry.image, responseType: 'blob' });
+      const response = await CapacitorHttp.get({
+        url: entry.image,
+        responseType: 'blob',
+        connectTimeout: 15_000,
+        readTimeout: 30_000,
+      });
       if (response.status !== 200 || typeof response.data !== 'string') return null;
       // The native side hands binary data over as base64 text.
       const binary = atob(response.data);
