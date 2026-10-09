@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.3.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 09.10.2026:** Version 1.4.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -69,9 +69,11 @@ erzeugen und im Teilen-Dialog in „Eigene Dateien“ oder auf Google Drive able
 | Statistik | Anzahl, Teile, Ausgaben, Bauzeit, Aufteilung nach Hersteller. |
 | Einstellungen | Sicherung exportieren und einspielen, Herstellerliste pflegen. |
 
-Beim Anlegen eines Sets oder Wunschs lässt sich ein **Lumibricks-Set aus dem Katalog
-übernehmen**: Setnummer oder Name ins Suchfeld tippen, Treffer antippen. Name, Nummer,
-Reihe, Teilezahl und Titelbild werden ausgefüllt, bei Wünschen auch ein Richtpreis.
+Beim Anlegen eines Sets oder Wunschs lässt sich ein **Set von BlueBrixx oder Lumibricks
+aus dem Katalog übernehmen**: Setnummer oder Name ins Suchfeld tippen, Treffer antippen.
+Name, Nummer, Reihe, Teilezahl und Titelbild werden ausgefüllt, bei Wünschen auch Preis
+und Shop-Link. Die Kataloge sind Abzüge der Shops; Sets, die ein Shop nicht mehr führt,
+fehlen darin. BlueBrixx-Titelbilder lädt nur die Android-App, nicht die Web-App.
 
 Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
@@ -95,17 +97,20 @@ npm run dev
 | `npm run build` | erzeugt die Web-App im Ordner `dist` |
 | `npm run build:app` | erzeugt den Inhalt der Android-App und kopiert ihn nach `android` |
 | `npm run preview` | zeigt die fertig gebaute Web-App aus `dist` an |
-| `npm run katalog` | ruft den Lumibricks-Katalog neu aus dem Shop ab (danach committen und pushen) |
+| `npm run katalog:lumibricks` | ruft den Lumibricks-Katalog neu aus dem Shop ab (rund 1 Minute) |
+| `npm run katalog:bluebrixx` | ruft den BlueBrixx-Katalog neu aus dem Shop ab (mehrere Minuten) |
 
 Die APK selbst wird nicht am PC gebaut, sondern bei GitHub: Jeder Push auf `main` erzeugt
-eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben.
+eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben. Das gilt auch für
+neu abgerufene Kataloge: abrufen, committen, pushen, neue APK installieren.
 
 ## Aufbau
 
 - `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Filter und
   Sortierung (`sets.ts`), Katalogsuche, Statistik, Fotoverkleinerung, Sicherung. Dazu
   gehören die Tests in `tests`.
-- `src/data` — der Lumibricks-Katalog als Abzug (128 Sets, Stand siehe Datei).
+- `src/data` — die Kataloge als Abzüge: Lumibricks (128 Sets) und BlueBrixx (746 Sets),
+  Stand jeweils in der Datei.
 - `src/routes` — die sieben Seiten der App.
 - `src/components` — wiederverwendete Bausteine (Reiterleiste, Dialog, Fotoanzeige …).
 - `android` — das Android-Projekt, also die Hülle um die Web-App. Icons und Startbild

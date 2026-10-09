@@ -1,11 +1,12 @@
 <script lang="ts">
   import CatalogSearch from '../components/CatalogSearch.svelte';
   import SuggestInput from '../components/SuggestInput.svelte';
-  import { catalogImageUrl, type CatalogEntry } from '../lib/catalog';
+  import type { CatalogEntry } from '../lib/catalog';
+  import { canDownloadImage, downloadCatalogImage } from '../lib/catalogImage';
   import { getDb } from '../lib/context';
   import { getManufacturers, getSet, listSets, putSet, replaceCover, setManufacturers } from '../lib/db';
   import { euroInput, parseCount, parseEuro } from '../lib/format';
-  import { MAX_EDGE, resizeToJpeg } from '../lib/photos';
+  import { resizeToJpeg } from '../lib/photos';
   import { replaceRoute } from '../lib/router';
   import { newSet, suggestions } from '../lib/sets';
   import { PRIORITIES, PRIORITY_LABEL, type BrickSet } from '../lib/types';
@@ -30,8 +31,10 @@
   let newManufacturer = $state('');
   let errors = $state<{ name?: string; price?: string; pieces?: string; manufacturer?: string }>({});
   let saving = $state(false);
-  // Picture of the catalog entry that was taken over; becomes the cover on save.
-  let catalogImage = $state<string | null>(null);
+  // Catalog entry that was taken over. Its picture becomes the cover on save, unless
+  // the user declines it.
+  let picked = $state.raw<CatalogEntry | null>(null);
+  let withPicture = $state(true);
 
   async function load() {
     // svelte-ignore state_referenced_locally
@@ -68,7 +71,8 @@
     draft.manufacturer = entry.manufacturer;
     manufacturerChoice = entry.manufacturer;
     pieces = entry.pieces?.toString() ?? '';
-    catalogImage = entry.image;
+    picked = entry;
+    withPicture = true;
     // The shop price is only a guide; what was actually paid is entered by hand.
     if (draft.status === 'wunsch') {
       price = euroInput(entry.priceCents);
@@ -78,14 +82,14 @@
   }
 
   // Needs an internet connection. Without one the set is saved without a picture.
-  async function downloadCover(setId: string, image: string) {
+  async function downloadCover(setId: string, entry: CatalogEntry) {
     try {
-      const response = await fetch(catalogImageUrl(image, MAX_EDGE));
-      if (!response.ok) return;
-      const resized = await resizeToJpeg(new File([await response.blob()], 'katalogbild'));
+      const blob = await downloadCatalogImage(entry);
+      if (!blob) return;
+      const resized = await resizeToJpeg(new File([blob], 'katalogbild'));
       await replaceCover(db, { id: crypto.randomUUID(), setId, createdAt: new Date().toISOString(), ...resized });
     } catch {
-      // Offline or unreadable: the cover can be added later on the set page.
+      // Unreadable picture: the cover can be added later on the set page.
     }
   }
 
@@ -128,7 +132,7 @@
       await setManufacturers(db, [...knownManufacturers, next.manufacturer]);
     }
     await putSet(db, next);
-    if (id === null && catalogImage) await downloadCover(next.id, catalogImage);
+    if (id === null && picked && withPicture) await downloadCover(next.id, picked);
     if (id) history.back();
     else replaceRoute({ page: 'set', id: next.id });
   }
@@ -144,14 +148,29 @@
   {#if id === null}
     <div class="catalog-area">
       <CatalogSearch onpick={applyCatalog} />
-      {#if catalogImage}
+      {#if picked}
         <div class="picked">
-          <img src={catalogImageUrl(catalogImage, 240)} alt="Bild aus dem Katalog" />
+          {#if picked.thumb && withPicture}
+            <img src={picked.thumb} alt="Bild aus dem Katalog" />
+          {/if}
           <p class="small muted">
-            Dieses Bild wird beim Speichern als Titelbild geladen (nur mit Internetverbindung).
-            {#if isWish}Der Preis ist ein Richtwert aus dem Shop, umgerechnet aus US-Dollar.{/if}
+            Übernommen aus dem {picked.manufacturer}-Katalog.
+            {#if !picked.image || !withPicture}
+              Ohne Titelbild.
+            {:else if canDownloadImage(picked)}
+              Das Bild wird beim Speichern als Titelbild geladen (nur mit Internetverbindung).
+            {:else}
+              Bilder von {picked.manufacturer} lassen sich nur in der Android-App als Titelbild übernehmen.
+            {/if}
+            {#if isWish && picked.priceCents !== null}
+              {picked.priceEstimated
+                ? 'Der Preis ist ein Richtwert aus dem Shop, umgerechnet aus US-Dollar.'
+                : 'Der Preis ist der Preis im Shop zum Stand des Katalogs.'}
+            {/if}
           </p>
-          <button type="button" class="btn" onclick={() => (catalogImage = null)}>Ohne Bild</button>
+          {#if picked.image && withPicture && canDownloadImage(picked)}
+            <button type="button" class="btn" onclick={() => (withPicture = false)}>Ohne Bild</button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -261,9 +280,13 @@
 
   .picked {
     display: grid;
-    grid-template-columns: 96px 1fr;
+    grid-template-columns: auto 1fr;
     align-items: center;
     gap: 12px;
+  }
+
+  .picked p:first-child {
+    grid-column: 1 / -1;
   }
 
   .picked img {

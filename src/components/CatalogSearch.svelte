@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { catalogImageUrl, loadCatalog, searchCatalog, type CatalogEntry } from '../lib/catalog';
+  import { loadCatalog, searchCatalog, type CatalogEntry } from '../lib/catalog';
   import { formatEuro } from '../lib/format';
 
   let { onpick }: { onpick: (entry: CatalogEntry) => void } = $props();
@@ -15,11 +15,27 @@
     query = '';
     onpick(entry);
   }
+
+  function describe(entry: CatalogEntry): string {
+    return [
+      `${entry.manufacturer} ${entry.number}`,
+      entry.theme,
+      entry.pieces ? `${entry.pieces.toLocaleString('de-DE')} Teile` : '',
+      entry.priceCents ? `${entry.priceEstimated ? 'ca. ' : ''}${formatEuro(entry.priceCents)}` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  // A missing thumbnail leaves the grey placeholder instead of a broken-image icon.
+  function hideBroken(event: Event) {
+    (event.currentTarget as HTMLImageElement).style.visibility = 'hidden';
+  }
 </script>
 
 <div class="catalog card">
   <label class="field">
-    <span>Aus dem Lumibricks-Katalog übernehmen</span>
+    <span>Aus dem Katalog übernehmen (BlueBrixx, Lumibricks)</span>
     <input type="search" bind:value={query} placeholder="Setnummer oder Name" autocomplete="off" />
   </label>
 
@@ -28,26 +44,15 @@
       <p class="muted small">Kein Treffer. Du kannst das Set unten von Hand anlegen.</p>
     {:else}
       <ul>
-        {#each hits as entry (entry.number)}
+        {#each hits as entry (`${entry.manufacturer}:${entry.number}`)}
           <li>
             <button type="button" onclick={() => pick(entry)}>
-              {#if entry.image}
-                <img src={catalogImageUrl(entry.image, 120)} alt="" loading="lazy" />
-              {:else}
-                <span class="no-image"></span>
-              {/if}
+              <span class="picture">
+                {#if entry.thumb}<img src={entry.thumb} alt="" loading="lazy" onerror={hideBroken} />{/if}
+              </span>
               <span class="text">
                 <strong>{entry.name}</strong>
-                <span class="muted small">
-                  {[
-                    entry.number,
-                    entry.theme,
-                    entry.pieces ? `${entry.pieces.toLocaleString('de-DE')} Teile` : '',
-                    entry.priceCents ? `ca. ${formatEuro(entry.priceCents)}` : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
+                <span class="muted small">{describe(entry)}</span>
               </span>
             </button>
           </li>
@@ -90,12 +95,17 @@
     cursor: pointer;
   }
 
-  img,
-  .no-image {
+  .picture {
     width: 48px;
     height: 48px;
+    overflow: hidden;
     border-radius: 8px;
     background: var(--chip);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 

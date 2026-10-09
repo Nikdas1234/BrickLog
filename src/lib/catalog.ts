@@ -6,27 +6,83 @@ export interface CatalogEntry {
   nameDe?: string;
   theme: string;
   pieces: number | null;
-  // Guide price in euro cents, converted from the shop's US dollar price.
   priceCents: number | null;
+  // True when the shop charges in another currency and the euro value is converted.
+  priceEstimated: boolean;
+  // Small picture for the result list.
+  thumb: string | null;
+  // Picture that becomes the cover of the set.
   image: string | null;
+  // Whether a web page may download the picture. The Android app always can.
+  imageCors: boolean;
   url: string;
 }
 
-interface CatalogFile {
+interface LumibricksFile {
+  manufacturer: string;
+  entries: {
+    number: string;
+    name: string;
+    nameDe?: string;
+    theme: string;
+    pieces: number | null;
+    priceCents: number | null;
+    image: string | null;
+    url: string;
+  }[];
+}
+
+interface BlueBrixxFile {
   manufacturer: string;
   source: string;
-  updated: string;
-  entries: Omit<CatalogEntry, 'manufacturer'>[];
+  entries: {
+    number: string;
+    name: string;
+    theme: string;
+    pieces: number | null;
+    priceCents: number | null;
+    // Path below <source>/media/
+    image: string | null;
+    // Last part of <source>/de/prod/<number>/<slug>/
+    slug: string;
+  }[];
+}
+
+// Shopify's image CDN scales on request.
+const withWidth = (image: string, width: number) => `${image}${image.includes('?') ? '&' : '?'}width=${width}`;
+
+export function fromLumibricks(file: LumibricksFile): CatalogEntry[] {
+  return file.entries.map((entry) => ({
+    ...entry,
+    manufacturer: file.manufacturer,
+    priceEstimated: true,
+    thumb: entry.image && withWidth(entry.image, 120),
+    image: entry.image && withWidth(entry.image, 1600),
+    imageCors: true,
+  }));
+}
+
+export function fromBlueBrixx(file: BlueBrixxFile): CatalogEntry[] {
+  return file.entries.map(({ slug, image, ...entry }) => ({
+    ...entry,
+    manufacturer: file.manufacturer,
+    priceEstimated: false,
+    // The shop keeps ready-made thumbnails next to every picture.
+    thumb: image && `${file.source}/thumbnail/${image.replace(/(\.\w+)$/, '_260x260$1')}`,
+    image: image && `${file.source}/media/${image}`,
+    imageCors: false,
+    url: `${file.source}/de/prod/${entry.number}/${slug}/`,
+  }));
 }
 
 let cached: Promise<CatalogEntry[]> | null = null;
 
-// Loaded on demand, so the catalog does not slow down the app start.
+// Loaded on demand, so the catalogs do not slow down the app start.
 export function loadCatalog(): Promise<CatalogEntry[]> {
-  cached ??= import('../data/catalog-lumibricks.json').then((module) => {
-    const file = module.default as CatalogFile;
-    return file.entries.map((entry) => ({ ...entry, manufacturer: file.manufacturer }));
-  });
+  cached ??= Promise.all([
+    import('../data/catalog-lumibricks.json').then((module) => fromLumibricks(module.default as LumibricksFile)),
+    import('../data/catalog-bluebrixx.json').then((module) => fromBlueBrixx(module.default as BlueBrixxFile)),
+  ]).then((catalogs) => catalogs.flat());
   return cached;
 }
 
@@ -51,9 +107,4 @@ export function searchCatalog(entries: CatalogEntry[], query: string, limit = 8)
     .sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name, 'de'))
     .slice(0, limit)
     .map((hit) => hit.entry);
-}
-
-// Shopify's image CDN scales on request; 1600 matches what we store anyway.
-export function catalogImageUrl(image: string, width: number): string {
-  return `${image}${image.includes('?') ? '&' : '?'}width=${width}`;
 }
