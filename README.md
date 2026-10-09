@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.6.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 09.10.2026:** Version 1.7.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -146,7 +146,7 @@ pushen; die Apps holen sie sich.
 - `src/routes` — die sieben Seiten der App.
 - `src/components` — wiederverwendete Bausteine (Reiterleiste, Dialog, Fotoanzeige …).
 - `android` — das Android-Projekt, also die Hülle um die Web-App. Icons und Startbild
-  darin entstehen aus `assets` über `scripts/make-app-icons.mjs`.
+  darin entstehen über `npm run icons` aus dem Logo in `scripts/make-app-icons.mjs`.
 - `geheim` — der Signaturschlüssel. Nur lokal, nie im Repository.
 - `.github/workflows/deploy.yml` — veröffentlicht bei jedem Push auf `main` die Web-App.
 - `.github/workflows/android.yml` — baut bei jedem Push auf `main` die signierte APK.

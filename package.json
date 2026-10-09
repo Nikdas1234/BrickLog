@@ -1,8 +1,8 @@
 {
   "name": "bricklog",
   "private": true,
-  "version": "1.6.0",
-  "nativeVersion": 1,
+  "version": "1.7.0",
+  "nativeVersion": 2,
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -11,6 +11,7 @@
     "preview": "vite preview --base /BrickLog/",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "icons": "node scripts/make-app-icons.mjs && pwa-assets-generator --preset minimal-2023 public/icon.svg && capacitor-assets generate --android",
     "katalog:lumibricks": "node scripts/update-catalog-lumibricks.mjs",
     "katalog:bluebrixx": "node scripts/update-catalog-bluebrixx.mjs"
   },

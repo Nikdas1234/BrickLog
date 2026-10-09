@@ -1,39 +1,55 @@
-// Renders the source pictures for the Android launcher icon and splash screen into
-// assets/. Afterwards `npx capacitor-assets generate --android` turns them into all the
-// sizes Android needs. Only has to be run again when the icon changes.
-import { mkdirSync } from 'node:fs';
+// Draws the BrickLog logo and writes the source pictures for all icons:
+//   public/icon.svg   icon of the web app (the PNG sizes come from pwa-assets-generator)
+//   assets/*.png      launcher icon and splash screen of the Android app
+//                     (all sizes come from `npx capacitor-assets generate --android`)
+// Run `npm run icons` after changing the logo. A new launcher icon only reaches the
+// phone with a new APK, so raise "nativeVersion" in package.json as well.
+import { mkdirSync, writeFileSync } from 'node:fs';
 import sharp from 'sharp';
 
-const RED = '#c8442b';
-const BRICK = '#e2664d';
-const STUD = '#f4a08d';
+const BACKGROUND = '#1d3557';
+const BRICK = '#f4b942';
+const BRICK_SHADE = '#dd9f24';
 
-// The brick seen from above; `size` is the edge of the square it is drawn into.
-function brick(size, x, y) {
-  const s = size / 280;
-  const stud = (cx, cy) => `<circle cx="${x + cx * s}" cy="${y + cy * s}" r="${46 * s}" fill="${STUD}"/>`;
-  return `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${28 * s}" fill="${BRICK}"/>
-    ${stud(76, 76)}${stud(204, 76)}${stud(76, 204)}${stud(204, 204)}`;
-}
+// The logo on a 1024 x 1024 canvas: a brick seen from the side, with two knobs on top
+// and a darker band at the bottom. It keeps clear of the outer edge, because Android
+// launchers cut the icon into a circle or a rounded square.
+const LOGO = `
+  <rect x="232" y="452" width="560" height="290" rx="26" fill="${BRICK}"/>
+  <rect x="293.600" y="382.600" width="156.800" height="75.400" rx="19" fill="${BRICK}"/>
+  <rect x="573.600" y="382.600" width="156.800" height="75.400" rx="19" fill="${BRICK}"/>
+  <rect x="232" y="652" width="560" height="90" rx="26" fill="${BRICK_SHADE}"/>
+  <rect x="232" y="652" width="560" height="40" fill="${BRICK_SHADE}"/>`;
 
-const svg = (edge, background, content) =>
-  Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${edge}" height="${edge}" viewBox="0 0 ${edge} ${edge}">
-      ${background ? `<rect width="${edge}" height="${edge}" fill="${background}"/>` : ''}${content}</svg>`,
-  );
+const icon = (background) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">${
+    background ? `<rect width="1024" height="1024" fill="${background}"/>` : ''
+  }${LOGO}</svg>`;
 
-const files = {
+// Splash screen: the logo in the middle of a plain page in the app's background colour.
+const splash = (pageColor) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732" viewBox="0 0 2732 2732">
+    <rect width="2732" height="2732" fill="${pageColor}"/>
+    <svg x="966" y="966" width="800" height="800" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" rx="230" fill="${BACKGROUND}"/>${LOGO}
+    </svg>
+  </svg>`;
+
+writeFileSync('public/icon.svg', icon(BACKGROUND).replace(' width="1024" height="1024"', '') + '\n');
+console.log('public/icon.svg');
+
+const pictures = {
   // Full icon for old Android versions.
-  'icon-only.png': svg(1024, RED, brick(560, 232, 232)),
-  // Adaptive icon: launchers cut this into a circle or squircle, so the brick keeps its distance to the edge.
-  'icon-foreground.png': svg(1024, null, brick(560, 232, 232)),
-  'icon-background.png': svg(1024, RED, ''),
-  'splash.png': svg(2732, '#f6f3ee', brick(480, 1126, 1126)),
-  'splash-dark.png': svg(2732, '#151517', brick(480, 1126, 1126)),
+  'icon-only.png': icon(BACKGROUND),
+  // Adaptive icon: Android combines these two layers and cuts them to shape.
+  'icon-foreground.png': icon(null),
+  'icon-background.png': `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="${BACKGROUND}"/></svg>`,
+  'splash.png': splash('#f6f3ee'),
+  'splash-dark.png': splash('#151517'),
 };
 
 mkdirSync('assets', { recursive: true });
-for (const [name, source] of Object.entries(files)) {
-  await sharp(source).png().toFile(`assets/${name}`);
+for (const [name, source] of Object.entries(pictures)) {
+  await sharp(Buffer.from(source)).png().toFile(`assets/${name}`);
   console.log(`assets/${name}`);
 }
