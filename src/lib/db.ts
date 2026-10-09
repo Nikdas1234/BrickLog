@@ -94,6 +94,27 @@ export async function deleteEntry(db: BrickDb, id: string): Promise<void> {
   await Promise.all([...writes, tx.done]);
 }
 
+// Stores a photo that belongs to no diary entry and makes it the cover of its set.
+// A previous cover that was also entry-less is replaced instead of piling up.
+export async function replaceCover(db: BrickDb, photo: Photo): Promise<void> {
+  const tx = db.transaction(['sets', 'entries', 'photos'], 'readwrite');
+  const set = await tx.objectStore('sets').get(photo.setId);
+  if (!set) {
+    await tx.done;
+    return;
+  }
+  const writes: Promise<unknown>[] = [];
+  if (set.coverPhotoId) {
+    const entries = await tx.objectStore('entries').index('setId').getAll(photo.setId);
+    if (!entries.some((e) => e.photoIds.includes(set.coverPhotoId!))) {
+      writes.push(tx.objectStore('photos').delete(set.coverPhotoId));
+    }
+  }
+  writes.push(tx.objectStore('photos').add(photo));
+  writes.push(tx.objectStore('sets').put({ ...set, coverPhotoId: photo.id }));
+  await Promise.all([...writes, tx.done]);
+}
+
 export function getPhoto(db: BrickDb, id: string): Promise<Photo | undefined> {
   return db.get('photos', id);
 }

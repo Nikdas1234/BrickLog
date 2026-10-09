@@ -44,6 +44,11 @@ export function formatMinutes(minutes: number): string {
   return min === 0 ? `${h} h` : `${h} h ${min} min`;
 }
 
+// plural(1, 'Foto', 'Fotos') → '1 Foto'
+export function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 // Whole number >= 0, or null for an empty field. undefined means invalid input.
 export function parseCount(input: string): number | null | undefined {
   const s = input.trim().replace(/\./g, '');

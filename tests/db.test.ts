@@ -16,6 +16,7 @@ import {
   openBrickDb,
   putSet,
   replaceAll,
+  replaceCover,
   saveEntryWithPhotos,
   setManufacturers,
 } from '../src/lib/db';
@@ -110,6 +111,26 @@ test('deletePhoto removes the id from its entry and clears the cover if it was o
   await deletePhoto(db, 'p1');
   expect((await getEntry(db, entry.id))!.photoIds).toEqual([]);
   expect((await getSet(db, set.id))!.coverPhotoId).toBeNull();
+});
+
+test('replaceCover swaps an entry-less cover but keeps a diary photo', async () => {
+  const db = await freshDb();
+  const set = makeSet();
+  await putSet(db, set);
+
+  await replaceCover(db, makePhoto(set.id, 'c1'));
+  expect((await getSet(db, set.id))!.coverPhotoId).toBe('c1');
+
+  await replaceCover(db, makePhoto(set.id, 'c2'));
+  expect((await getSet(db, set.id))!.coverPhotoId).toBe('c2');
+  expect(await getPhoto(db, 'c1')).toBeUndefined();
+
+  const entry = makeEntry(set.id, { photoIds: ['p1'] });
+  await saveEntryWithPhotos(db, entry, [makePhoto(set.id, 'p1')]);
+  await putSet(db, { ...(await getSet(db, set.id))!, coverPhotoId: 'p1' });
+  await replaceCover(db, makePhoto(set.id, 'c3'));
+  expect((await getSet(db, set.id))!.coverPhotoId).toBe('c3');
+  expect(await getPhoto(db, 'p1')).toBeDefined();
 });
 
 test('saveEntryWithPhotos writes nothing when one photo fails', async () => {
