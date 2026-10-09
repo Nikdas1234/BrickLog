@@ -114,7 +114,3 @@ eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben.
 - `.github/workflows/deploy.yml` — veröffentlicht bei jedem Push auf `main` die Web-App.
 - `.github/workflows/android.yml` — baut bei jedem Push auf `main` die signierte APK.
 
-## Dokumente
-
-- [Entwurf](docs/2026-10-09_Entwurf.md) — was die App kann und was bewusst nicht
-- [Umsetzungsplan](docs/2026-10-09_Umsetzungsplan.md) — in welchen Schritten sie gebaut wurde
