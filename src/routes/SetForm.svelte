@@ -1,8 +1,11 @@
 <script lang="ts">
+  import CatalogSearch from '../components/CatalogSearch.svelte';
   import SuggestInput from '../components/SuggestInput.svelte';
+  import { catalogImageUrl, type CatalogEntry } from '../lib/catalog';
   import { getDb } from '../lib/context';
-  import { getManufacturers, getSet, listSets, putSet, setManufacturers } from '../lib/db';
+  import { getManufacturers, getSet, listSets, putSet, replaceCover, setManufacturers } from '../lib/db';
   import { euroInput, parseCount, parseEuro, todayIso } from '../lib/format';
+  import { MAX_EDGE, resizeToJpeg } from '../lib/photos';
   import { replaceRoute } from '../lib/router';
   import { applyStatus, newSet, suggestions } from '../lib/sets';
   import { OWNED_STATUSES, PRIORITIES, PRIORITY_LABEL, STATUS_LABEL, type BrickSet, type Status } from '../lib/types';
@@ -28,6 +31,8 @@
   let initialStatus = $state<Status>('ungebaut');
   let errors = $state<{ name?: string; price?: string; pieces?: string; manufacturer?: string }>({});
   let saving = $state(false);
+  // Picture of the catalog entry that was taken over; becomes the cover on save.
+  let catalogImage = $state<string | null>(null);
 
   async function load() {
     // svelte-ignore state_referenced_locally
@@ -58,6 +63,35 @@
   const showBuildDates = $derived(
     id !== null && (draft?.status === 'im_bau' || draft?.status === 'fertig' || draft?.status === 'abgegeben'),
   );
+
+  function applyCatalog(entry: CatalogEntry) {
+    if (!draft) return;
+    draft.name = entry.name;
+    draft.setNumber = entry.number;
+    draft.theme = entry.theme;
+    draft.manufacturer = entry.manufacturer;
+    manufacturerChoice = entry.manufacturer;
+    pieces = entry.pieces?.toString() ?? '';
+    catalogImage = entry.image;
+    // The shop price is only a guide; what was actually paid is entered by hand.
+    if (draft.status === 'wunsch') {
+      price = euroInput(entry.priceCents);
+      draft.shopUrl = entry.url;
+    }
+    errors = {};
+  }
+
+  // Needs an internet connection. Without one the set is saved without a picture.
+  async function downloadCover(setId: string, image: string) {
+    try {
+      const response = await fetch(catalogImageUrl(image, MAX_EDGE));
+      if (!response.ok) return;
+      const resized = await resizeToJpeg(new File([await response.blob()], 'katalogbild'));
+      await replaceCover(db, { id: crypto.randomUUID(), setId, createdAt: new Date().toISOString(), ...resized });
+    } catch {
+      // Offline or unreadable: the cover can be added later on the set page.
+    }
+  }
 
   async function save(event: SubmitEvent) {
     event.preventDefault();
@@ -102,6 +136,7 @@
       await setManufacturers(db, [...knownManufacturers, next.manufacturer]);
     }
     await putSet(db, next);
+    if (id === null && catalogImage) await downloadCover(next.id, catalogImage);
     if (id) history.back();
     else replaceRoute({ page: 'set', id: next.id });
   }
@@ -113,6 +148,22 @@
   <header class="page-head">
     <h1>{id ? 'Set bearbeiten' : isWish ? 'Neuer Wunsch' : 'Neues Set'}</h1>
   </header>
+
+  {#if id === null}
+    <div class="catalog-area">
+      <CatalogSearch onpick={applyCatalog} />
+      {#if catalogImage}
+        <div class="picked">
+          <img src={catalogImageUrl(catalogImage, 240)} alt="Bild aus dem Katalog" />
+          <p class="small muted">
+            Dieses Bild wird beim Speichern als Titelbild geladen (nur mit Internetverbindung).
+            {#if isWish}Der Preis ist ein Richtwert aus dem Shop, umgerechnet aus US-Dollar.{/if}
+          </p>
+          <button type="button" class="btn" onclick={() => (catalogImage = null)}>Ohne Bild</button>
+        </div>
+      {/if}
+    </div>
+  {/if}
 
   <form class="stack" onsubmit={save} novalidate>
     <label class="field">
@@ -217,3 +268,29 @@
     </div>
   </form>
 {/if}
+
+<style>
+  .catalog-area {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .picked {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .picked img {
+    width: 96px;
+    height: 96px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  .picked .btn {
+    grid-column: 1 / -1;
+  }
+</style>

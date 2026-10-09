@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.0.0 ist veröffentlicht unter
+**Stand 09.10.2026:** Version 1.1.0 ist veröffentlicht unter
 <https://nikdas1234.github.io/BrickLog/> (Repository: <https://github.com/Nikdas1234/BrickLog>).
 Am PC im Browser durchgetestet. Noch offen: die Abnahme auf dem Handy (Installation,
 Kamera, Offline-Betrieb).
@@ -43,6 +43,10 @@ der Datei.
 | Statistik | Anzahl, Teile, Ausgaben, Bauzeit, Aufteilung nach Hersteller. |
 | Einstellungen | Sicherung exportieren und einspielen, Herstellerliste pflegen. |
 
+Beim Anlegen eines Sets oder Wunschs lässt sich ein **Lumibricks-Set aus dem Katalog
+übernehmen**: Setnummer oder Name ins Suchfeld tippen, Treffer antippen. Name, Nummer,
+Reihe, Teilezahl und Titelbild werden ausgefüllt, bei Wünschen auch ein Richtpreis.
+
 Auf der Seite eines Sets: Status ändern, Titelbild setzen, Bautagebuch-Einträge mit Fotos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
 
@@ -64,12 +68,14 @@ npm run dev
 | `npm run check` | prüft den Code auf Typfehler |
 | `npm run build` | erzeugt die fertige App im Ordner `dist` |
 | `npm run preview` | zeigt die fertig gebaute App aus `dist` an |
+| `npm run katalog` | ruft den Lumibricks-Katalog neu aus dem Shop ab (danach committen und pushen) |
 
 ## Aufbau
 
 - `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Statusregeln und
   Filter (`sets.ts`), Statistik, Fotoverkleinerung, Sicherung. Dazu gehören die Tests in
   `tests`.
+- `src/data` — der Lumibricks-Katalog als Abzug (128 Sets, Stand siehe Datei).
 - `src/routes` — die sieben Seiten der App.
 - `src/components` — wiederverwendete Bausteine (Reiterleiste, Dialog, Fotoanzeige …).
 - `.github/workflows/deploy.yml` — baut und veröffentlicht die App bei jedem Push auf
