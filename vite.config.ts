@@ -5,8 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
-export default defineConfig({
-  base: '/BrickLog/',
+// GitHub Pages serves the app from /BrickLog/; the local dev server uses the root.
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/BrickLog/' : '/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
@@ -37,4 +38,4 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts'],
   },
-});
+}));

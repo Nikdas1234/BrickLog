@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --base /BrickLog/",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },

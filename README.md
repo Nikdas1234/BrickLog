@@ -46,7 +46,7 @@ npm run dev
 ```
 
 `npm run dev` startet eine lokale Vorschau und nennt die Adresse
-(`http://localhost:5173/BrickLog/`). Weitere Befehle:
+(`http://localhost:5173/`). Weitere Befehle:
 
 | Befehl | Wirkung |
 |---|---|
