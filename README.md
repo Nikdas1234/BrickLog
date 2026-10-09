@@ -3,9 +3,19 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.0.0 ist gebaut und am PC im Browser durchgetestet. Noch
-offen: Veröffentlichung auf GitHub Pages und die Abnahme auf dem Handy (Installation,
+**Stand 09.10.2026:** Version 1.0.0 ist veröffentlicht unter
+<https://nikdas1234.github.io/BrickLog/> (Repository: <https://github.com/Nikdas1234/BrickLog>).
+Am PC im Browser durchgetestet. Noch offen: die Abnahme auf dem Handy (Installation,
 Kamera, Offline-Betrieb).
+
+## Auf dem Handy installieren
+
+1. Auf dem Handy in **Chrome** die Adresse <https://nikdas1234.github.io/BrickLog/> öffnen.
+2. Menü (drei Punkte oben rechts) → **Zum Startbildschirm hinzufügen** → **Installieren**.
+3. Die App über das neue Icon „BrickLog“ starten. Ab jetzt läuft sie ohne Internet.
+
+Aktualisiert wird sie von selbst: Jeder Push auf `main` veröffentlicht eine neue Fassung,
+die App lädt sie beim nächsten Start mit Internetverbindung. Die Daten bleiben erhalten.
 
 ## Was die App ist
 
