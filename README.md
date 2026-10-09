@@ -10,9 +10,11 @@ CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 | **Android-App (APK)** | <https://github.com/Nikdas1234/BrickLog/releases/download/apk/BrickLog.apk> | das Handy, die Hauptform |
 | Web-App | <https://nikdas1234.github.io/BrickLog/> | zum Ausprobieren im Browser, auch am PC |
 
-Am PC im Browser durchgetestet. Die Android-App wird bei GitHub gebaut und signiert; auf
-einem echten Handy ist sie noch nicht abgenommen (Installation, Kamera, Ränder an
-Statusleiste und Navigationsleiste, Sicherung über den Teilen-Dialog, Selbstaktualisierung).
+Am PC im Browser durchgetestet. Die Android-App wird bei GitHub gebaut und signiert. Auf
+dem Handy bestätigt (09.10.2026): Installation und das selbstständige Nachladen neuer
+Inhalte (Bau 6 auf Bau 7). Dort noch nicht ausdrücklich geprüft: Kamera, Ränder an
+Statusleiste und Navigationsleiste, Sicherung über den Teilen-Dialog, BlueBrixx-Titelbild,
+Rückfall bei einem fehlerhaften Update.
 
 ## Auf dem Handy installieren
 
