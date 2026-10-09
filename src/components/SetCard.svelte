@@ -1,6 +1,6 @@
 <script lang="ts">
   import { href } from '../lib/router';
-  import { STATUS_LABEL, type BrickSet } from '../lib/types';
+  import type { BrickSet } from '../lib/types';
   import PhotoImg from './PhotoImg.svelte';
 
   let { set }: { set: BrickSet } = $props();
@@ -11,7 +11,6 @@
   <div class="body">
     <strong>{set.name}</strong>
     {#if set.manufacturer}<span class="muted small">{set.manufacturer}</span>{/if}
-    <span class="badge s-{set.status}">{STATUS_LABEL[set.status]}</span>
   </div>
 </a>
 

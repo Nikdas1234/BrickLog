@@ -1,17 +1,14 @@
-export type Status = 'wunsch' | 'ungebaut' | 'im_bau' | 'fertig' | 'abgegeben';
+// A set is either on the wishlist or in the collection. There is no build status.
+export type Status = 'wunsch' | 'sammlung';
 export type Priority = 'hoch' | 'mittel' | 'niedrig';
 
-export const STATUSES: Status[] = ['wunsch', 'ungebaut', 'im_bau', 'fertig', 'abgegeben'];
-export const OWNED_STATUSES: Status[] = ['ungebaut', 'im_bau', 'fertig', 'abgegeben'];
 export const PRIORITIES: Priority[] = ['hoch', 'mittel', 'niedrig'];
 
-export const STATUS_LABEL: Record<Status, string> = {
-  wunsch: 'Wunschliste',
-  ungebaut: 'ungebaut',
-  im_bau: 'im Bau',
-  fertig: 'fertig',
-  abgegeben: 'abgegeben',
-};
+// Up to version 1.1 owned sets carried a build status (ungebaut, im_bau, fertig,
+// abgegeben). Stored data and old backups may still contain those values.
+export function normalizeStatus(value: unknown): Status {
+  return value === 'wunsch' ? 'wunsch' : 'sammlung';
+}
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
   hoch: 'hoch',

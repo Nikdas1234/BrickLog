@@ -25,37 +25,20 @@ export function newSet(status: Status, now: Date = new Date()): BrickSet {
   };
 }
 
-export function applyStatus(set: BrickSet, status: Status, today: string): BrickSet {
-  const next = { ...set, status };
-  if (status === 'im_bau') {
-    next.buildStart ??= today;
-    next.buildEnd = null;
-  } else if (status === 'fertig') {
-    next.buildStart ??= today;
-    next.buildEnd ??= today;
-  } else if (status === 'ungebaut') {
-    next.buildEnd = null;
-  }
-  return next;
-}
-
 export function markPurchased(set: BrickSet, purchaseDate: string, priceCents: number | null): BrickSet {
-  return { ...set, status: 'ungebaut', purchaseDate, priceCents, priority: null };
+  return { ...set, status: 'sammlung', purchaseDate, priceCents, priority: null };
 }
 
 export interface SetFilter {
   query: string;
-  status: Status | null;
   manufacturer: string | null;
   theme: string | null;
 }
 
-// status null means "everything owned", i.e. all sets except wishes.
 export function filterSets(sets: BrickSet[], filter: SetFilter): BrickSet[] {
   const q = filter.query.trim().toLowerCase();
   return sets.filter(
     (s) =>
-      (filter.status === null ? s.status !== 'wunsch' : s.status === filter.status) &&
       (filter.manufacturer === null || s.manufacturer === filter.manufacturer) &&
       (filter.theme === null || s.theme === filter.theme) &&
       (q === '' || s.name.toLowerCase().includes(q) || s.setNumber.toLowerCase().includes(q)),

@@ -1,7 +1,7 @@
 import { strFromU8, strToU8, unzip, zip, type Unzipped, type Zippable } from 'fflate';
 import { replaceAll, type BrickDb } from './db';
 import { newSet } from './sets';
-import { STATUSES, type BackupData, type BrickSet, type LogEntry, type Photo } from './types';
+import { normalizeStatus, type BackupData, type BrickSet, type LogEntry, type Photo } from './types';
 
 export const BACKUP_VERSION = 1;
 const MANIFEST = 'bricklog.json';
@@ -66,10 +66,11 @@ export async function parseBackupZip(bytes: Uint8Array): Promise<BackupData> {
     fail('lists missing');
   }
 
-  const template = newSet('ungebaut');
+  const template = newSet('sammlung');
   const parsedSets = sets.map((s): BrickSet => {
-    if (!isObject(s) || !isText(s.id) || !isText(s.name) || !STATUSES.includes(s.status as never)) fail('invalid set');
-    return { ...template, ...(s as Partial<BrickSet>) } as BrickSet;
+    if (!isObject(s) || !isText(s.id) || !isText(s.name)) fail('invalid set');
+    // Backups made before version 1.2 still carry the old build status.
+    return { ...template, ...(s as Partial<BrickSet>), status: normalizeStatus(s.status) } as BrickSet;
   });
   const parsedEntries = entries.map((e): LogEntry => {
     if (!isObject(e) || !isText(e.id) || !isText(e.setId) || !isText(e.date) || !Array.isArray(e.photoIds)) {

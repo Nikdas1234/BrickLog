@@ -8,11 +8,6 @@
   --accent-text: #ffffff;
   --danger: #b3261e;
   --chip: #ece7de;
-  --s-ungebaut: #6b665e;
-  --s-im_bau: #a35f00;
-  --s-fertig: #2e7d4f;
-  --s-abgegeben: #8a8580;
-  --s-wunsch: #2f6fb0;
   --tab-height: 60px;
   color-scheme: light;
 }
@@ -28,11 +23,6 @@
     --accent-text: #1a0d09;
     --danger: #f2847b;
     --chip: #2a2b30;
-    --s-ungebaut: #a09d97;
-    --s-im_bau: #f0b24a;
-    --s-fertig: #6fcf97;
-    --s-abgegeben: #7d7a75;
-    --s-wunsch: #7fb4ea;
     color-scheme: dark;
   }
 }
@@ -265,43 +255,6 @@ a:focus-visible {
   grid-template-columns: 1fr 2fr;
   gap: 12px;
   margin-top: 8px;
-}
-
-/* Status badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--chip);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.badge.s-ungebaut {
-  color: var(--s-ungebaut);
-}
-.badge.s-im_bau {
-  color: var(--s-im_bau);
-}
-.badge.s-fertig {
-  color: var(--s-fertig);
-}
-.badge.s-abgegeben {
-  color: var(--s-abgegeben);
-}
-.badge.s-wunsch {
-  color: var(--s-wunsch);
 }
 
 .price {

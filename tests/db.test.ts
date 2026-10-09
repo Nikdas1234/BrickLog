@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto';
+import { openDB } from 'idb';
 import { expect, test } from 'vitest';
 import {
   DEFAULT_MANUFACTURERS,
@@ -28,6 +29,38 @@ test('a new database offers the default manufacturers', async () => {
   const db = await freshDb();
   expect(await getManufacturers(db)).toEqual(DEFAULT_MANUFACTURERS);
   await setManufacturers(db, ['Qman']);
+  expect(await getManufacturers(db)).toEqual(['Qman']);
+});
+
+test('opening a version 1 database drops the build status but keeps everything else', async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const old = await openDB(name, 1, {
+    upgrade(db) {
+      db.createObjectStore('sets', { keyPath: 'id' });
+      db.createObjectStore('entries', { keyPath: 'id' }).createIndex('setId', 'setId');
+      db.createObjectStore('photos', { keyPath: 'id' }).createIndex('setId', 'setId');
+      db.createObjectStore('meta');
+    },
+  });
+  await old.put('sets', { ...makeSet({ id: 'a', name: 'Im Bau', buildStart: '2026-09-01' }), status: 'im_bau' });
+  await old.put('sets', { ...makeSet({ id: 'b', name: 'Abgegeben', priceCents: 2000 }), status: 'abgegeben' });
+  await old.put('sets', makeSet({ id: 'c', name: 'Wunsch', status: 'wunsch', priority: 'hoch' }));
+  await old.put('entries', makeEntry('a', { id: 'e1' }));
+  await old.put('meta', ['Qman'], 'manufacturers');
+  old.close();
+
+  const db = await openBrickDb(name);
+
+  const sets = (await listSets(db)).sort((x, y) => x.id.localeCompare(y.id));
+  expect(sets.map((s) => [s.name, s.status])).toEqual([
+    ['Im Bau', 'sammlung'],
+    ['Abgegeben', 'sammlung'],
+    ['Wunsch', 'wunsch'],
+  ]);
+  expect(sets[0].buildStart).toBe('2026-09-01');
+  expect(sets[1].priceCents).toBe(2000);
+  expect(sets[2].priority).toBe('hoch');
+  expect(await listEntries(db, 'a')).toHaveLength(1);
   expect(await getManufacturers(db)).toEqual(['Qman']);
 });
 

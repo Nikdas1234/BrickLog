@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { BackupData, BrickSet, LogEntry, Photo } from './types';
+import { normalizeStatus, type BackupData, type BrickSet, type LogEntry, type Photo } from './types';
 
 export const DEFAULT_MANUFACTURERS = ['BlueBrixx', 'Lumibricks', 'CaDA', 'Cobi', 'LEGO', 'Mould King', 'Pantasy'];
 
@@ -13,13 +13,21 @@ interface BrickSchema extends DBSchema {
 export type BrickDb = IDBPDatabase<BrickSchema>;
 
 export function openBrickDb(name = 'bricklog'): Promise<BrickDb> {
-  return openDB<BrickSchema>(name, 1, {
-    upgrade(db, _oldVersion, _newVersion, tx) {
-      db.createObjectStore('sets', { keyPath: 'id' });
-      db.createObjectStore('entries', { keyPath: 'id' }).createIndex('setId', 'setId');
-      db.createObjectStore('photos', { keyPath: 'id' }).createIndex('setId', 'setId');
-      db.createObjectStore('meta');
-      tx.objectStore('meta').put(DEFAULT_MANUFACTURERS, 'manufacturers');
+  return openDB<BrickSchema>(name, 2, {
+    async upgrade(db, oldVersion, _newVersion, tx) {
+      if (oldVersion < 1) {
+        db.createObjectStore('sets', { keyPath: 'id' });
+        db.createObjectStore('entries', { keyPath: 'id' }).createIndex('setId', 'setId');
+        db.createObjectStore('photos', { keyPath: 'id' }).createIndex('setId', 'setId');
+        db.createObjectStore('meta');
+        tx.objectStore('meta').put(DEFAULT_MANUFACTURERS, 'manufacturers');
+        return;
+      }
+      // Version 2 dropped the build status: every owned set is simply 'sammlung'.
+      for (let cursor = await tx.objectStore('sets').openCursor(); cursor; cursor = await cursor.continue()) {
+        const status = normalizeStatus(cursor.value.status);
+        if (status !== cursor.value.status) await cursor.update({ ...cursor.value, status });
+      }
     },
   });
 }

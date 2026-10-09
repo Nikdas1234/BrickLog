@@ -1,9 +1,8 @@
 <script lang="ts">
   import { getDb } from '../lib/context';
   import { listAllEntries, listSets } from '../lib/db';
-  import { formatEuro, formatMinutes } from '../lib/format';
+  import { formatEuro, formatMinutes, plural } from '../lib/format';
   import { computeStats, type Stats } from '../lib/stats';
-  import { STATUSES, STATUS_LABEL } from '../lib/types';
 
   const db = getDb();
 
@@ -15,9 +14,6 @@
     stats = computeStats(sets, entries);
   });
 
-  const owned = $derived(
-    stats ? stats.countByStatus.ungebaut + stats.countByStatus.im_bau + stats.countByStatus.fertig : 0,
-  );
 </script>
 
 <header class="page-head">
@@ -32,8 +28,8 @@
   <div class="stack">
     <div class="tiles">
       <div class="card tile">
-        <span class="muted small">Sets im Besitz</span>
-        <strong>{owned}</strong>
+        <span class="muted small">Sets</span>
+        <strong>{stats.ownedCount}</strong>
       </div>
       <div class="card tile">
         <span class="muted small">Teile</span>
@@ -49,20 +45,15 @@
       </div>
     </div>
 
-    <section class="card">
-      <h2>Nach Status</h2>
-      <ul>
-        {#each STATUSES as status (status)}
-          <li>
-            <span class="badge s-{status}">{STATUS_LABEL[status]}</span>
-            <strong>{stats.countByStatus[status]}</strong>
-          </li>
-        {/each}
-      </ul>
-      {#if stats.wishlistCents > 0}
-        <p class="muted small">Die Wunschliste hat einen Wert von {formatEuro(stats.wishlistCents)}.</p>
-      {/if}
-    </section>
+    {#if stats.wishCount > 0}
+      <section class="card">
+        <h2>Wunschliste</h2>
+        <p>
+          {plural(stats.wishCount, 'Wunsch', 'Wünsche')} im Wert von
+          <strong class="price">{formatEuro(stats.wishlistCents)}</strong>
+        </p>
+      </section>
+    {/if}
 
     {#if stats.byManufacturer.length > 0}
       <section class="card">
@@ -108,19 +99,6 @@
     gap: 12px;
   }
 
-  ul {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
 
   table {
     width: 100%;

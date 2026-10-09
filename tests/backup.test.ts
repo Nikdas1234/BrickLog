@@ -55,13 +55,26 @@ test('broken or foreign files are rejected', async () => {
   await reject(manifestOnly({ ...validManifest(), version: 2 }));
   await reject(manifestOnly({ ...validManifest(), sets: 'nope' }));
   await reject(manifestOnly({ ...validManifest(), sets: [{ ...makeSet(), name: '' }] }));
-  await reject(manifestOnly({ ...validManifest(), sets: [{ ...makeSet(), status: 'kaputt' }] }));
   await reject(manifestOnly({ ...validManifest(), photos: [{ id: 'p1', setId: 's1', width: 1, height: 1 }] }));
 });
 
 test('a valid manifest without photos is accepted', async () => {
   const parsed = await parseBackupZip(manifestOnly(validManifest()));
   expect(parsed.sets).toHaveLength(1);
+});
+
+test('a backup from before version 1.2 loses its build status', async () => {
+  const legacy = [
+    { ...makeSet({ name: 'Fertig' }), status: 'fertig' },
+    { ...makeSet({ name: 'Abgegeben' }), status: 'abgegeben' },
+    { ...makeSet({ name: 'Wunsch' }), status: 'wunsch' },
+  ];
+  const parsed = await parseBackupZip(manifestOnly({ ...validManifest(), sets: legacy }));
+  expect(parsed.sets.map((s) => [s.name, s.status])).toEqual([
+    ['Fertig', 'sammlung'],
+    ['Abgegeben', 'sammlung'],
+    ['Wunsch', 'wunsch'],
+  ]);
 });
 
 test('restoreBackup with a broken file leaves the stock untouched', async () => {

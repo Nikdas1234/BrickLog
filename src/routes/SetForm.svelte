@@ -4,11 +4,11 @@
   import { catalogImageUrl, type CatalogEntry } from '../lib/catalog';
   import { getDb } from '../lib/context';
   import { getManufacturers, getSet, listSets, putSet, replaceCover, setManufacturers } from '../lib/db';
-  import { euroInput, parseCount, parseEuro, todayIso } from '../lib/format';
+  import { euroInput, parseCount, parseEuro } from '../lib/format';
   import { MAX_EDGE, resizeToJpeg } from '../lib/photos';
   import { replaceRoute } from '../lib/router';
-  import { applyStatus, newSet, suggestions } from '../lib/sets';
-  import { OWNED_STATUSES, PRIORITIES, PRIORITY_LABEL, STATUS_LABEL, type BrickSet, type Status } from '../lib/types';
+  import { newSet, suggestions } from '../lib/sets';
+  import { PRIORITIES, PRIORITY_LABEL, type BrickSet } from '../lib/types';
 
   let { id, wish }: { id: string | null; wish: boolean } = $props();
 
@@ -28,7 +28,6 @@
   let buildEnd = $state('');
   let manufacturerChoice = $state('');
   let newManufacturer = $state('');
-  let initialStatus = $state<Status>('ungebaut');
   let errors = $state<{ name?: string; price?: string; pieces?: string; manufacturer?: string }>({});
   let saving = $state(false);
   // Picture of the catalog entry that was taken over; becomes the cover on save.
@@ -36,7 +35,7 @@
 
   async function load() {
     // svelte-ignore state_referenced_locally
-    const loaded = id ? await getSet(db, id) : newSet(wish ? 'wunsch' : 'ungebaut');
+    const loaded = id ? await getSet(db, id) : newSet(wish ? 'wunsch' : 'sammlung');
     if (!loaded) {
       missing = true;
       return;
@@ -48,7 +47,6 @@
     buildStart = loaded.buildStart ?? '';
     buildEnd = loaded.buildEnd ?? '';
     manufacturerChoice = loaded.manufacturer;
-    initialStatus = loaded.status;
     draft = loaded;
   }
   load();
@@ -60,9 +58,7 @@
       ? [...knownManufacturers, draft.manufacturer]
       : knownManufacturers,
   );
-  const showBuildDates = $derived(
-    id !== null && (draft?.status === 'im_bau' || draft?.status === 'fertig' || draft?.status === 'abgegeben'),
-  );
+
 
   function applyCatalog(entry: CatalogEntry) {
     if (!draft) return;
@@ -112,7 +108,7 @@
     if (!parsedPrice.ok || parsedPieces === undefined || Object.values(errors).some(Boolean)) return;
 
     saving = true;
-    let next: BrickSet = {
+    const next: BrickSet = {
       ...$state.snapshot(draft),
       name: draft.name.trim(),
       setNumber: draft.setNumber.trim(),
@@ -124,13 +120,9 @@
       priceCents: parsedPrice.cents,
       pieceCount: parsedPieces,
       purchaseDate: purchaseDate || null,
+      buildStart: buildStart || null,
+      buildEnd: buildEnd || null,
     };
-    if (showBuildDates) {
-      next.buildStart = buildStart || null;
-      next.buildEnd = buildEnd || null;
-    } else if (id === null && next.status !== initialStatus) {
-      next = applyStatus(next, next.status, todayIso());
-    }
 
     if (next.manufacturer && !knownManufacturers.includes(next.manufacturer)) {
       await setManufacturers(db, [...knownManufacturers, next.manufacturer]);
@@ -235,16 +227,7 @@
       <SuggestInput label="Lagerort" bind:value={draft.location} options={suggestions(allSets, 'location')} />
     {/if}
 
-    {#if id === null && !isWish}
-      <label class="field">
-        <span>Status</span>
-        <select bind:value={draft.status}>
-          {#each OWNED_STATUSES as s (s)}<option value={s}>{STATUS_LABEL[s]}</option>{/each}
-        </select>
-      </label>
-    {/if}
-
-    {#if showBuildDates}
+    {#if !isWish}
       <div class="two-col">
         <label class="field">
           <span>Baubeginn</span>

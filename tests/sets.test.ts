@@ -1,45 +1,14 @@
 import { expect, test } from 'vitest';
-import { applyStatus, filterSets, markPurchased, sortWishlist, suggestions, type SetFilter } from '../src/lib/sets';
+import { filterSets, markPurchased, sortWishlist, suggestions, type SetFilter } from '../src/lib/sets';
 import { makeSet } from './helpers';
 
 const TODAY = '2026-10-09';
-const ALL: SetFilter = { query: '', status: null, manufacturer: null, theme: null };
-
-test('starting a build sets the start date', () => {
-  const next = applyStatus(makeSet(), 'im_bau', TODAY);
-  expect(next).toMatchObject({ status: 'im_bau', buildStart: TODAY, buildEnd: null });
-});
-
-test('finishing keeps an existing start date and sets the end date', () => {
-  const next = applyStatus(makeSet({ status: 'im_bau', buildStart: '2026-09-01' }), 'fertig', TODAY);
-  expect(next).toMatchObject({ status: 'fertig', buildStart: '2026-09-01', buildEnd: TODAY });
-});
-
-test('finishing straight from the shelf sets both dates', () => {
-  expect(applyStatus(makeSet(), 'fertig', TODAY)).toMatchObject({ buildStart: TODAY, buildEnd: TODAY });
-});
-
-test('going back from finished clears the end date only', () => {
-  const done = makeSet({ status: 'fertig', buildStart: '2026-09-01', buildEnd: '2026-09-20' });
-  expect(applyStatus(done, 'im_bau', TODAY)).toMatchObject({ buildStart: '2026-09-01', buildEnd: null });
-  expect(applyStatus(done, 'ungebaut', TODAY)).toMatchObject({ buildStart: '2026-09-01', buildEnd: null });
-});
-
-test('giving a set away keeps both dates', () => {
-  const done = makeSet({ status: 'fertig', buildStart: '2026-09-01', buildEnd: '2026-09-20' });
-  expect(applyStatus(done, 'abgegeben', TODAY)).toMatchObject({ buildStart: '2026-09-01', buildEnd: '2026-09-20' });
-});
-
-test('applyStatus does not change its argument', () => {
-  const set = makeSet();
-  applyStatus(set, 'fertig', TODAY);
-  expect(set).toMatchObject({ status: 'ungebaut', buildStart: null, buildEnd: null });
-});
+const ALL: SetFilter = { query: '', manufacturer: null, theme: null };
 
 test('markPurchased moves a wish into the collection', () => {
   const wish = makeSet({ status: 'wunsch', priority: 'hoch', priceCents: 8000, shopUrl: 'https://example.org/x' });
   expect(markPurchased(wish, TODAY, 7500)).toMatchObject({
-    status: 'ungebaut',
+    status: 'sammlung',
     purchaseDate: TODAY,
     priceCents: 7500,
     priority: null,
@@ -56,10 +25,9 @@ test('filterSets searches name and set number, ignoring case', () => {
   expect(filterSets(sets, { ...ALL, query: ' burg ' }).map((s) => s.name)).toEqual(['Burg Blaustein', 'Turm']);
 });
 
-test('filterSets without a status shows everything except wishes', () => {
-  const sets = [makeSet({ name: 'A' }), makeSet({ name: 'B', status: 'wunsch' }), makeSet({ name: 'C', status: 'abgegeben' })];
-  expect(filterSets(sets, ALL).map((s) => s.name)).toEqual(['A', 'C']);
-  expect(filterSets(sets, { ...ALL, status: 'wunsch' }).map((s) => s.name)).toEqual(['B']);
+test('filterSets without criteria returns everything', () => {
+  const sets = [makeSet({ name: 'A' }), makeSet({ name: 'B' })];
+  expect(filterSets(sets, ALL).map((s) => s.name)).toEqual(['A', 'B']);
 });
 
 test('filterSets combines manufacturer and theme', () => {

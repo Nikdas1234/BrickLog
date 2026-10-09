@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.1.0 ist veröffentlicht unter
+**Stand 09.10.2026:** Version 1.2.0 ist veröffentlicht unter
 <https://nikdas1234.github.io/BrickLog/> (Repository: <https://github.com/Nikdas1234/BrickLog>).
 Am PC im Browser durchgetestet. Noch offen: die Abnahme auf dem Handy (Installation,
 Kamera, Offline-Betrieb).
@@ -38,7 +38,7 @@ der Datei.
 
 | Reiter | Wozu |
 |---|---|
-| Sammlung | Alle Sets, die du besitzt oder besessen hast. Suche, Filter, `+` legt ein Set an. |
+| Sammlung | Alle Sets, die du besitzt. Suche, Filter nach Hersteller und Thema, `+` legt ein Set an. |
 | Wunschliste | Sets, die du haben möchtest, mit Preis und Priorität. „Gekauft“ verschiebt in die Sammlung. |
 | Statistik | Anzahl, Teile, Ausgaben, Bauzeit, Aufteilung nach Hersteller. |
 | Einstellungen | Sicherung exportieren und einspielen, Herstellerliste pflegen. |
@@ -47,7 +47,7 @@ Beim Anlegen eines Sets oder Wunschs lässt sich ein **Lumibricks-Set aus dem Ka
 übernehmen**: Setnummer oder Name ins Suchfeld tippen, Treffer antippen. Name, Nummer,
 Reihe, Teilezahl und Titelbild werden ausgefüllt, bei Wünschen auch ein Richtpreis.
 
-Auf der Seite eines Sets: Status ändern, Titelbild setzen, Bautagebuch-Einträge mit Fotos
+Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
 
 ## Am PC starten

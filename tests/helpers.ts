@@ -2,7 +2,7 @@ import { newSet } from '../src/lib/sets';
 import type { BrickSet, LogEntry, Photo } from '../src/lib/types';
 
 export function makeSet(overrides: Partial<BrickSet> = {}): BrickSet {
-  return { ...newSet('ungebaut', new Date('2026-10-01T10:00:00Z')), name: 'Testset', ...overrides };
+  return { ...newSet('sammlung', new Date('2026-10-01T10:00:00Z')), name: 'Testset', ...overrides };
 }
 
 export function makeEntry(setId: string, overrides: Partial<LogEntry> = {}): LogEntry {

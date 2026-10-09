@@ -4,13 +4,12 @@
   import { listSets } from '../lib/db';
   import { href } from '../lib/router';
   import { filterSets, suggestions } from '../lib/sets';
-  import { OWNED_STATUSES, STATUS_LABEL, type BrickSet, type Status } from '../lib/types';
+  import type { BrickSet } from '../lib/types';
 
   const db = getDb();
 
   let sets = $state.raw<BrickSet[] | null>(null);
   let query = $state('');
-  let status = $state<Status | ''>('');
   let manufacturer = $state('');
   let theme = $state('');
 
@@ -25,7 +24,6 @@
   const visible = $derived(
     filterSets(sets ?? [], {
       query,
-      status: status || null,
       manufacturer: manufacturer || null,
       theme: theme || null,
     }),
@@ -45,10 +43,6 @@
   <div class="filters">
     <input type="search" bind:value={query} placeholder="Name oder Setnummer suchen" aria-label="Suche" />
     <div class="selects">
-      <select bind:value={status} aria-label="Status">
-        <option value="">Alle Status</option>
-        {#each OWNED_STATUSES as s (s)}<option value={s}>{STATUS_LABEL[s]}</option>{/each}
-      </select>
       <select bind:value={manufacturer} aria-label="Hersteller">
         <option value="">Alle Hersteller</option>
         {#each manufacturers as m (m)}<option value={m}>{m}</option>{/each}
@@ -80,7 +74,7 @@
 
   .selects {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 

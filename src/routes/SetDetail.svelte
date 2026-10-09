@@ -8,8 +8,8 @@
   import { resizeToJpeg } from '../lib/photos';
   import { revokePhotoUrl } from '../lib/photoUrl';
   import { href, replaceRoute } from '../lib/router';
-  import { applyStatus, markPurchased } from '../lib/sets';
-  import { OWNED_STATUSES, PRIORITY_LABEL, STATUS_LABEL, type BrickSet, type LogEntry, type Status } from '../lib/types';
+  import { markPurchased } from '../lib/sets';
+  import { PRIORITY_LABEL, type BrickSet, type LogEntry } from '../lib/types';
 
   let { id }: { id: string } = $props();
 
@@ -70,13 +70,6 @@
     if (index >= 0) viewerIndex = index;
   }
 
-  async function changeStatus(event: Event) {
-    if (!set) return;
-    const status = (event.currentTarget as HTMLSelectElement).value as Status;
-    const next = applyStatus(set, status, todayIso());
-    await putSet(db, next);
-    set = next;
-  }
 
   async function uploadCover(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
@@ -168,13 +161,6 @@
           <a class="btn" href={set.shopUrl} target="_blank" rel="noopener noreferrer">Im Shop öffnen</a>
         {/if}
       </div>
-    {:else}
-      <label class="field">
-        <span>Status</span>
-        <select value={set.status} onchange={changeStatus}>
-          {#each OWNED_STATUSES as s (s)}<option value={s}>{STATUS_LABEL[s]}</option>{/each}
-        </select>
-      </label>
     {/if}
 
     {#if facts.length > 0}
