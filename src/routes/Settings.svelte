@@ -8,7 +8,7 @@
   import { isNativeApp, saveFile } from '../lib/saveFile';
 
   const db = getDb();
-  const version = __APP_VERSION__;
+  const version = __BUILD__ > 0 ? `${__APP_VERSION__} (Bau ${__BUILD__})` : __APP_VERSION__;
 
   let manufacturers = $state.raw<string[]>([]);
   let newManufacturer = $state('');

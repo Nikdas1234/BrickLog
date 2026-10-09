@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.4.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 09.10.2026:** Version 1.5.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -12,7 +12,7 @@ CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
 Am PC im Browser durchgetestet. Die Android-App wird bei GitHub gebaut und signiert; auf
 einem echten Handy ist sie noch nicht abgenommen (Installation, Kamera, Ränder an
-Statusleiste und Navigationsleiste, Sicherung über den Teilen-Dialog).
+Statusleiste und Navigationsleiste, Sicherung über den Teilen-Dialog, Selbstaktualisierung).
 
 ## Auf dem Handy installieren
 
@@ -24,9 +24,27 @@ Statusleiste und Navigationsleiste, Sicherung über den Teilen-Dialog).
 4. Meldet Play Protect eine unbekannte App, **Trotzdem installieren** wählen. Das ist bei
    jeder App so, die nicht aus dem Play Store kommt.
 
-**Aktualisieren:** dieselbe Adresse erneut öffnen und die neue Datei installieren. Android
-ersetzt die App, die Daten bleiben. Welche Fassung läuft, steht unter *Einstellungen* ganz
-unten.
+## Aktualisieren
+
+Ab Version 1.5.0 hält sich die App selbst aktuell. Sie schaut beim Start und beim
+Zurückkehren in den Vordergrund (höchstens alle sechs Stunden) nach, ob es etwas Neues
+gibt. Dafür braucht sie Internet; ohne Verbindung läuft sie einfach weiter.
+
+| Was sich geändert hat | Was passiert | Was du tust |
+|---|---|---|
+| Inhalte: Oberfläche, Kataloge, Fehlerkorrekturen (der Normalfall) | Die App lädt die neue Fassung im Hintergrund. Sie wird beim nächsten Start aktiv; ein Hinweis bietet „Jetzt anwenden“ an. | nichts |
+| Die Android-Hülle: Icon, neue Gerätefunktionen (selten) | Die App zeigt „Neue App-Version“ mit einem Knopf zum Herunterladen. | APK herunterladen und drüberinstallieren |
+
+Welche Fassung läuft, steht unter *Einstellungen* ganz unten, z. B. „BrickLog 1.5.0
+(Bau 6)“. Startet eine nachgeladene Fassung nicht richtig, kehrt die App nach zehn
+Sekunden von selbst zur Fassung aus der APK zurück und lädt die fehlerhafte nicht erneut.
+
+Von Hand geht es weiterhin: die Download-Adresse oben erneut öffnen und die neue Datei
+installieren. Android ersetzt die App, die Daten bleiben.
+
+**Für Änderungen an der Hülle** (neues Capacitor-Plugin, Icon, Android-Einstellungen) muss
+`nativeVersion` in `package.json` um eins erhöht werden. Daran erkennt die App, dass
+nachgeladene Inhalte nicht genügen und eine neue APK nötig ist.
 
 **Web-App und Android-App teilen keine Daten.** Wer in der Web-App schon Sets angelegt
 hat: dort *Sicherung exportieren*, in der Android-App *Sicherung einspielen*.
@@ -101,8 +119,10 @@ npm run dev
 | `npm run katalog:bluebrixx` | ruft den BlueBrixx-Katalog neu aus dem Shop ab (mehrere Minuten) |
 
 Die APK selbst wird nicht am PC gebaut, sondern bei GitHub: Jeder Push auf `main` erzeugt
-eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben. Das gilt auch für
-neu abgerufene Kataloge: abrufen, committen, pushen, neue APK installieren.
+eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben, dazu das
+Inhaltspaket `bundle.zip` und die Versionsdatei `version.json`, aus denen sich installierte
+Apps selbst aktualisieren. Das gilt auch für neu abgerufene Kataloge: abrufen, committen,
+pushen; die Apps holen sie sich.
 
 ## Aufbau
 

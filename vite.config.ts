@@ -16,6 +16,8 @@ export default defineConfig(({ command, mode }) => ({
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    // Running number of the GitHub build; 0 for local builds and the dev server.
+    __BUILD__: JSON.stringify(Number(process.env.BRICKLOG_BUILD ?? 0)),
   },
   plugins: [
     svelte(),

@@ -1,5 +1,6 @@
 <script lang="ts">
   import TabBar from './components/TabBar.svelte';
+  import UpdateBanner from './components/UpdateBanner.svelte';
   import { provideDb } from './lib/context';
   import type { BrickDb } from './lib/db';
   import { parseRoute } from './lib/router';
@@ -32,6 +33,7 @@
 </script>
 
 <main class="page" class:with-tabs={hasTabs}>
+  {#if hasTabs}<UpdateBanner />{/if}
   {#if route.page === 'collection'}
     <Collection />
   {:else if route.page === 'wishlist'}

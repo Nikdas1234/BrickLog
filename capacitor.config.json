@@ -1,5 +1,12 @@
 {
   "appId": "io.github.nikdas1234.bricklog",
   "appName": "BrickLog",
-  "webDir": "dist-app"
+  "webDir": "dist-app",
+  "plugins": {
+    "LiveUpdate": {
+      "readyTimeout": 10000,
+      "autoDeleteBundles": true,
+      "autoBlockRolledBackBundles": true
+    }
+  }
 }

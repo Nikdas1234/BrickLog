@@ -1,7 +1,8 @@
 {
   "name": "bricklog",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
+  "nativeVersion": 1,
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -19,6 +20,7 @@
     "@capacitor/core": "^8.5.3",
     "@capacitor/filesystem": "^8.1.4",
     "@capacitor/share": "^8.0.3",
+    "@capawesome/capacitor-live-update": "^8.6.0",
     "fflate": "^0.8.3",
     "idb": "^8.0.4"
   },

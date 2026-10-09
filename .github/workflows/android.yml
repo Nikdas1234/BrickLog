@@ -28,6 +28,19 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      # Baunummer: wächst mit jedem Lauf. Hüllenversion ("nativeVersion" in package.json):
+      # wird nur von Hand erhöht, wenn sich die Android-Hülle selbst ändert. Der
+      # Versionscode der APK trägt beide: Hüllenversion * 100000 + Baunummer.
+      - name: Fassung bestimmen
+        run: |
+          NATIVE=$(node -p "require('./package.json').nativeVersion")
+          {
+            echo "BRICKLOG_BUILD=${{ github.run_number }}"
+            echo "BRICKLOG_NATIVE=$NATIVE"
+            echo "BRICKLOG_VERSION_NAME=$(node -p "require('./package.json').version")"
+            echo "BRICKLOG_VERSION_CODE=$((NATIVE * 100000 + ${{ github.run_number }}))"
+          } >> "$GITHUB_ENV"
+
       # Web-Inhalt bauen und in das Android-Projekt kopieren
       - run: npm run build:app
 
@@ -37,15 +50,12 @@ jobs:
         run: |
           test -n "$KEYSTORE_BASE64" || { echo "Secret BRICKLOG_KEYSTORE_BASE64 fehlt"; exit 1; }
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/bricklog.p12"
-          echo "BRICKLOG_VERSION_NAME=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
 
       - name: APK bauen
         working-directory: android
         env:
           BRICKLOG_KEYSTORE: ${{ runner.temp }}/bricklog.p12
           BRICKLOG_KEYSTORE_PASSWORD: ${{ secrets.BRICKLOG_KEYSTORE_PASSWORD }}
-          # Die Nummer des Laufs wächst mit jedem Bau; Android braucht das für Updates.
-          BRICKLOG_VERSION_CODE: ${{ github.run_number }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
@@ -56,14 +66,32 @@ jobs:
           APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
           "$APKSIGNER" verify --print-certs BrickLog.apk | head -n 3
 
-      # Eine einzige, fortlaufend aktualisierte Veröffentlichung "apk". Dadurch bleibt
-      # die Download-Adresse immer gleich.
-      - name: APK veröffentlichen
+      # Das Inhaltspaket ist derselbe Web-Inhalt, der auch in der APK steckt. Installierte
+      # Apps laden es selbst nach; version.json sagt ihnen, was aktuell ist.
+      - name: Inhaltspaket und Versionsdatei erzeugen
+        run: |
+          (cd dist-app && zip -qr ../bundle.zip .)
+          BASE="https://github.com/${{ github.repository }}/releases/download/apk"
+          jq -n \
+            --argjson build "$BRICKLOG_BUILD" \
+            --argjson native "$BRICKLOG_NATIVE" \
+            --arg version "$BRICKLOG_VERSION_NAME" \
+            --arg sha "$(sha256sum bundle.zip | cut -d' ' -f1)" \
+            --arg base "$BASE" \
+            '{build: $build, version: $version, native: $native, bundleId: "\($version)-b\($build)", bundleUrl: "\($base)/bundle.zip", bundleSha256: $sha, apkUrl: "\($base)/BrickLog.apk"}' \
+            > version.json
+          cat version.json
+
+      # Eine einzige, fortlaufend aktualisierte Veröffentlichung "apk". Dadurch bleiben
+      # die Adressen immer gleich. version.json kommt zuletzt, damit sie nie auf Dateien
+      # zeigt, die noch nicht da sind.
+      - name: Veröffentlichen
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITLE="BrickLog $BRICKLOG_VERSION_NAME für Android (Bau ${{ github.run_number }})"
-          NOTES="Die Datei **BrickLog.apk** auf dem Handy herunterladen und antippen. Eine vorhandene BrickLog-App wird dabei aktualisiert, die Daten bleiben erhalten."
+          TITLE="BrickLog $BRICKLOG_VERSION_NAME für Android (Bau $BRICKLOG_BUILD)"
+          NOTES="Die Datei **BrickLog.apk** auf dem Handy herunterladen und antippen. Eine vorhandene BrickLog-App wird dabei aktualisiert, die Daten bleiben erhalten. Die übrigen Dateien lädt die App selbst, um sich zu aktualisieren."
           gh release view apk >/dev/null 2>&1 || gh release create apk --title "$TITLE" --notes "$NOTES" --latest
-          gh release upload apk BrickLog.apk --clobber
+          gh release upload apk bundle.zip BrickLog.apk --clobber
+          gh release upload apk version.json --clobber
           gh release edit apk --title "$TITLE" --notes "$NOTES"
