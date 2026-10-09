@@ -73,11 +73,9 @@
     pieces = entry.pieces?.toString() ?? '';
     picked = entry;
     withPicture = true;
-    // The shop price is only a guide; what was actually paid is entered by hand.
-    if (draft.status === 'wunsch') {
-      price = euroInput(entry.priceCents);
-      draft.shopUrl = entry.url;
-    }
+    // The shop price is a starting point; it stays editable for what was actually paid.
+    price = euroInput(entry.priceCents);
+    if (draft.status === 'wunsch') draft.shopUrl = entry.url;
     errors = {};
   }
 
@@ -162,10 +160,11 @@
             {:else}
               Bilder von {picked.manufacturer} lassen sich nur in der Android-App als Titelbild übernehmen.
             {/if}
-            {#if isWish && picked.priceCents !== null}
+            {#if picked.priceCents !== null}
               {picked.priceEstimated
                 ? 'Der Preis ist ein Richtwert aus dem Shop, umgerechnet aus US-Dollar.'
                 : 'Der Preis ist der Preis im Shop zum Stand des Katalogs.'}
+              {#if !isWish}Ändere ihn, falls du etwas anderes gezahlt hast.{/if}
             {/if}
           </p>
           {#if picked.image && withPicture && canDownloadImage(picked)}
