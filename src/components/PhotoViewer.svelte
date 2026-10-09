@@ -89,8 +89,12 @@
     padding: 4px 8px 4px 16px;
   }
 
+  .top {
+    padding-top: calc(4px + var(--inset-top));
+  }
+
   .bottom {
-    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    padding: 4px 8px calc(4px + var(--inset-bottom));
   }
 
   .strip {

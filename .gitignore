@@ -1,5 +1,12 @@
 node_modules
 dist
+dist-app
 dev-dist
 *.local
 .vite
+
+# Signing key of the Android app. Must never be published.
+geheim
+*.p12
+*.jks
+*.keystore

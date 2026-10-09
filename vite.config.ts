@@ -5,15 +5,22 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
-// GitHub Pages serves the app from /BrickLog/; the local dev server uses the root.
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/BrickLog/' : '/',
+// Three targets:
+//   dev server            served from the root
+//   vite build            web app for GitHub Pages, served from /BrickLog/, with service worker
+//   vite build --mode app content of the Android app (Capacitor), relative paths, no service worker
+export default defineConfig(({ command, mode }) => ({
+  base: mode === 'app' ? './' : command === 'build' ? '/BrickLog/' : '/',
+  build: {
+    outDir: mode === 'app' ? 'dist-app' : 'dist',
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [
     svelte(),
     VitePWA({
+      disable: mode === 'app',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'icon.svg'],
       manifest: {

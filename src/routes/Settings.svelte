@@ -5,6 +5,7 @@
   import { exportAll, getManufacturers, setManufacturers } from '../lib/db';
   import { plural, todayIso } from '../lib/format';
   import { revokeAllPhotoUrls } from '../lib/photoUrl';
+  import { isNativeApp, saveFile } from '../lib/saveFile';
 
   const db = getDb();
   const version = __APP_VERSION__;
@@ -24,16 +25,14 @@
     try {
       const data = await exportAll(db);
       const zipped = await buildBackupZip(data, new Date().toISOString());
-      const url = URL.createObjectURL(new Blob([zipped as BlobPart], { type: 'application/zip' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = backupFileName(todayIso());
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      message = {
-        text: `Sicherung erstellt: ${plural(data.sets.length, 'Set', 'Sets')}, ${plural(data.photos.length, 'Foto', 'Fotos')}. Die Datei liegt im Download-Ordner.`,
-        bad: false,
-      };
+      const result = await saveFile(zipped, backupFileName(todayIso()), 'application/zip');
+      const counts = `${plural(data.sets.length, 'Set', 'Sets')}, ${plural(data.photos.length, 'Foto', 'Fotos')}`;
+      message =
+        result === 'cancelled'
+          ? { text: 'Die Sicherung wurde erstellt, aber nirgends abgelegt. Exportiere sie noch einmal.', bad: true }
+          : result === 'shared'
+            ? { text: `Sicherung erstellt und weitergegeben: ${counts}.`, bad: false }
+            : { text: `Sicherung erstellt: ${counts}. Die Datei liegt im Download-Ordner.`, bad: false };
     } catch {
       message = { text: 'Die Sicherung konnte nicht erstellt werden.', bad: true };
     }
@@ -93,8 +92,14 @@
   <section class="card stack">
     <h2>Sicherung</h2>
     <p class="muted small">
-      Deine Daten liegen nur auf diesem Handy. Wer in Chrome die Websitedaten löscht oder die App deinstalliert, löscht
-      auch Sammlung und Fotos. Exportiere regelmäßig eine Sicherung und lege sie woanders ab.
+      {#if isNativeApp}
+        Deine Daten liegen nur auf diesem Handy. Wer die App deinstalliert oder in den Android-Einstellungen ihre
+        Daten löscht, löscht auch Sammlung und Fotos. Exportiere regelmäßig eine Sicherung und lege sie im
+        Teilen-Dialog woanders ab, z. B. in „Eigene Dateien“ oder Google Drive.
+      {:else}
+        Deine Daten liegen nur in diesem Browser. Wer in Chrome die Websitedaten löscht oder die App deinstalliert,
+        löscht auch Sammlung und Fotos. Exportiere regelmäßig eine Sicherung und lege sie woanders ab.
+      {/if}
     </p>
     <button type="button" class="btn primary wide" disabled={working} onclick={exportBackup}>Sicherung exportieren</button>
     <label class="btn wide" aria-disabled={working}>
@@ -130,7 +135,7 @@
     </form>
   </section>
 
-  <p class="muted small version">BrickLog {version}</p>
+  <p class="muted small version">BrickLog {version}{isNativeApp ? ' · Android-App' : ' · Web-App'}</p>
 </div>
 
 <ConfirmDialog

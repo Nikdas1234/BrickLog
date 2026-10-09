@@ -26,8 +26,8 @@
     inset: auto 0 0 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    height: calc(var(--tab-height) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(var(--tab-height) + var(--inset-bottom));
+    padding-bottom: var(--inset-bottom);
     background: var(--surface);
     border-top: 1px solid var(--border);
   }
