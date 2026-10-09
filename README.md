@@ -72,8 +72,8 @@ npm run dev
 
 ## Aufbau
 
-- `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Statusregeln und
-  Filter (`sets.ts`), Statistik, Fotoverkleinerung, Sicherung. Dazu gehören die Tests in
+- `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Filter und
+  Sortierung (`sets.ts`), Katalogsuche, Statistik, Fotoverkleinerung, Sicherung. Dazu gehören die Tests in
   `tests`.
 - `src/data` — der Lumibricks-Katalog als Abzug (128 Sets, Stand siehe Datei).
 - `src/routes` — die sieben Seiten der App.
