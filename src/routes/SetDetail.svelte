@@ -3,6 +3,7 @@
   import Icon from '../components/Icon.svelte';
   import PhotoImg from '../components/PhotoImg.svelte';
   import PhotoViewer from '../components/PhotoViewer.svelte';
+  import Stopwatch from '../components/Stopwatch.svelte';
   import VideoPlayer from '../components/VideoPlayer.svelte';
   import VideoTile from '../components/VideoTile.svelte';
   import { getDb } from '../lib/context';
@@ -11,8 +12,9 @@
   import { euroInput, formatDate, formatEuro, formatMinutes, parseEuro, plural, todayIso } from '../lib/format';
   import { resizeToJpeg } from '../lib/photos';
   import { revokePhotoUrl } from '../lib/photoUrl';
-  import { href, replaceRoute } from '../lib/router';
+  import { href, navigate, replaceRoute } from '../lib/router';
   import { markPurchased } from '../lib/sets';
+  import { discardBuildTimer } from '../lib/timers.svelte';
   import { PRIORITY_LABEL, type BrickSet, type LogEntry } from '../lib/types';
 
   let { id }: { id: string } = $props();
@@ -123,6 +125,7 @@
     if (!set) return;
     const target = isWish ? 'wishlist' : 'collection';
     await deleteSet(db, set.id);
+    discardBuildTimer(set.id);
     photoIds.forEach(revokePhotoUrl);
     replaceRoute({ page: target });
   }
@@ -220,6 +223,8 @@
           </div>
           <a class="btn primary" href={href({ page: 'entryForm', setId: set.id, entryId: null })}>Eintrag hinzufügen</a>
         </div>
+
+        <Stopwatch setId={set.id} onfinish={() => navigate({ page: 'entryForm', setId: id, entryId: null })} />
 
         {#if entries.length === 0}
           <p class="muted">Noch kein Eintrag. Halte fest, wie der Bau vorangeht.</p>

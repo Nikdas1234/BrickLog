@@ -8,6 +8,8 @@
   import { deleteEntry, deletePhoto, deleteVideo, getEntry, getSet, saveEntryWithMedia } from '../lib/db';
   import { parseCount, todayIso } from '../lib/format';
   import { revokePhotoUrl } from '../lib/photoUrl';
+  import { timerMinutes } from '../lib/timer';
+  import { discardBuildTimer, timers } from '../lib/timers.svelte';
   import type { LogEntry, Photo, Video } from '../lib/types';
 
   let { setId, entryId }: { setId: string; entryId: string | null } = $props();
@@ -28,6 +30,8 @@
   let saving = $state(false);
   let errors = $state<{ date?: string; minutes?: string; save?: string }>({});
   let confirmDelete = $state(false);
+  // The building time was filled in from the stopwatch of this set.
+  let fromStopwatch = $state(false);
 
   async function load() {
     // svelte-ignore state_referenced_locally
@@ -49,6 +53,13 @@
       createdAt: new Date().toISOString(),
     };
     minutes = loaded.minutes?.toString() ?? '';
+    // A new entry takes over the time of a stopped stopwatch. A stopwatch that is still
+    // running belongs to a session that is not finished and is left alone.
+    const timer = entryId ? undefined : timers[set.id];
+    if (timer && timer.runningSince === null && timer.accumulatedMs > 0) {
+      minutes = timerMinutes(timer.accumulatedMs).toString();
+      fromStopwatch = true;
+    }
     originalPhotoIds = [...loaded.photoIds];
     originalVideoIds = [...loaded.videoIds];
     keptPhotoIds = [...loaded.photoIds];
@@ -112,6 +123,8 @@
     }
     pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url));
     pendingVideos.forEach((v) => v.posterUrl && URL.revokeObjectURL(v.posterUrl));
+    // The measured time now lives in the entry; the stopwatch starts from zero again.
+    if (fromStopwatch) discardBuildTimer(next.setId);
     history.back();
   }
 
@@ -151,6 +164,12 @@
       </label>
     </div>
     {#if errors.minutes}<span class="error" role="alert">{errors.minutes}</span>{/if}
+    {#if fromStopwatch}
+      <p class="notice stopwatch-note">
+        <Icon name="clock" size={18} />
+        <span>Bauzeit aus der Stoppuhr übernommen. Beim Speichern wird die Stoppuhr zurückgesetzt.</span>
+      </p>
+    {/if}
 
     <label class="field">
       <span>Notiz</span>
@@ -218,6 +237,13 @@
 {/if}
 
 <style>
+  .stopwatch-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: -6px;
+  }
+
   .existing {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
