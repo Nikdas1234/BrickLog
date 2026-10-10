@@ -1,30 +1,42 @@
+<script lang="ts" module>
+  export interface MediaItem {
+    kind: 'photo' | 'video';
+    id: string;
+  }
+</script>
+
 <script lang="ts">
   import { onMount } from 'svelte';
   import ConfirmDialog from './ConfirmDialog.svelte';
   import PhotoImg from './PhotoImg.svelte';
+  import ViewerVideo from './ViewerVideo.svelte';
 
+  // Full-screen view of all photos and videos of a set, to swipe through.
   let {
-    photoIds,
+    items,
     startIndex,
     coverId,
     onclose,
     onsetcover,
     ondelete,
   }: {
-    photoIds: string[];
+    items: MediaItem[];
     startIndex: number;
     coverId: string | null;
     onclose: () => void;
-    onsetcover: (id: string) => void;
-    ondelete: (id: string) => void;
+    onsetcover: (photoId: string) => void;
+    ondelete: (item: MediaItem) => void;
   } = $props();
 
   let strip: HTMLDivElement;
   // svelte-ignore state_referenced_locally
   let index = $state(startIndex);
+  // A video that was tapped starts playing at once; one reached by swiping waits.
+  let swiped = $state(false);
   let confirmDelete = $state(false);
 
-  const currentId = $derived(photoIds[Math.min(index, photoIds.length - 1)]);
+  const position = $derived(Math.min(index, items.length - 1));
+  const current = $derived(items[position]);
 
   // The viewer gets its own history entry, so the phone's back button closes it
   // instead of leaving the set page.
@@ -37,37 +49,49 @@
   });
 
   function onScroll() {
-    index = Math.round(strip.scrollLeft / strip.clientWidth);
+    const next = Math.round(strip.scrollLeft / strip.clientWidth);
+    if (next !== index) swiped = true;
+    index = next;
   }
 </script>
 
-<div class="viewer" role="dialog" aria-modal="true" aria-label="Fotos">
+<div class="viewer" role="dialog" aria-modal="true" aria-label="Fotos und Videos">
   <div class="top">
-    <span>{Math.min(index, photoIds.length - 1) + 1} / {photoIds.length}</span>
+    <span>{position + 1} / {items.length}</span>
     <button type="button" class="plain" onclick={() => history.back()}>Schließen</button>
   </div>
 
   <div class="strip" bind:this={strip} onscroll={onScroll}>
-    {#each photoIds as id (id)}
-      <div class="slide"><PhotoImg {id} alt="Foto" contain /></div>
+    {#each items as item, i (item.id)}
+      <div class="slide">
+        {#if item.kind === 'photo'}
+          <PhotoImg id={item.id} alt="Foto" contain />
+        {:else}
+          <ViewerVideo id={item.id} active={i === position} autoplay={i === startIndex && !swiped} />
+        {/if}
+      </div>
     {/each}
   </div>
 
   <div class="bottom">
-    <button type="button" class="plain" disabled={currentId === coverId} onclick={() => onsetcover(currentId)}>
-      {currentId === coverId ? 'Ist Titelbild' : 'Als Titelbild'}
-    </button>
+    {#if current?.kind === 'photo'}
+      <button type="button" class="plain" disabled={current.id === coverId} onclick={() => onsetcover(current.id)}>
+        {current.id === coverId ? 'Ist Titelbild' : 'Als Titelbild'}
+      </button>
+    {:else}
+      <span></span>
+    {/if}
     <button type="button" class="plain" onclick={() => (confirmDelete = true)}>Löschen</button>
   </div>
 </div>
 
 <ConfirmDialog
   bind:open={confirmDelete}
-  title="Foto löschen?"
+  title={current?.kind === 'video' ? 'Video löschen?' : 'Foto löschen?'}
   message="Das lässt sich nicht rückgängig machen."
   confirmLabel="Löschen"
   danger
-  onconfirm={() => ondelete(currentId)}
+  onconfirm={() => current && ondelete(current)}
 />
 
 <style>
@@ -99,6 +123,7 @@
 
   .strip {
     display: flex;
+    min-height: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -107,6 +132,7 @@
   .slide {
     flex: 0 0 100%;
     min-width: 0;
+    min-height: 0;
     scroll-snap-align: center;
   }
 
@@ -117,7 +143,7 @@
     background: none;
     color: #fff;
     font: inherit;
-    font-weight: 600;
+    font-weight: 650;
     cursor: pointer;
   }
 

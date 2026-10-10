@@ -2,9 +2,8 @@
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import Icon from '../components/Icon.svelte';
   import PhotoImg from '../components/PhotoImg.svelte';
-  import PhotoViewer from '../components/PhotoViewer.svelte';
+  import MediaViewer, { type MediaItem } from '../components/MediaViewer.svelte';
   import Stopwatch from '../components/Stopwatch.svelte';
-  import VideoPlayer from '../components/VideoPlayer.svelte';
   import VideoTile from '../components/VideoTile.svelte';
   import { getDb } from '../lib/context';
   import { coverJobs } from '../lib/coverJobs.svelte';
@@ -24,9 +23,9 @@
   // undefined while loading, null when the set does not exist.
   let set = $state.raw<BrickSet | null | undefined>(undefined);
   let entries = $state.raw<LogEntry[]>([]);
-  let photoIds = $state.raw<string[]>([]);
+  // All photos and videos of the set, in the order the full-screen viewer shows them.
+  let media = $state.raw<MediaItem[]>([]);
   let viewerIndex = $state<number | null>(null);
-  let playingVideoId = $state<string | null>(null);
   let confirmDelete = $state(false);
   let coverError = $state('');
 
@@ -44,8 +43,15 @@
     }
     const [loadedEntries, photos] = await Promise.all([listEntries(db, loaded.id), listPhotos(db, loaded.id)]);
     const inEntries = loadedEntries.flatMap((e) => e.photoIds);
-    // Photos without a diary entry (an uploaded cover) come first.
-    photoIds = [...photos.map((p) => p.id).filter((p) => !inEntries.includes(p)), ...inEntries];
+    // The order to swipe through: photos without a diary entry (an uploaded cover) first,
+    // then entry by entry, photos before videos, as they appear on the page.
+    media = [
+      ...photos.filter((p) => !inEntries.includes(p.id)).map((p): MediaItem => ({ kind: 'photo', id: p.id })),
+      ...loadedEntries.flatMap((e): MediaItem[] => [
+        ...e.photoIds.map((photoId): MediaItem => ({ kind: 'photo', id: photoId })),
+        ...e.videoIds.map((videoId): MediaItem => ({ kind: 'video', id: videoId })),
+      ]),
+    ];
     entries = loadedEntries;
     set = loaded;
   }
@@ -76,11 +82,10 @@
       : [],
   );
 
-  function openViewer(photoId: string | null) {
-    const index = photoId ? photoIds.indexOf(photoId) : -1;
+  function openViewer(mediaId: string | null) {
+    const index = mediaId ? media.findIndex((item) => item.id === mediaId) : -1;
     if (index >= 0) viewerIndex = index;
   }
-
 
   async function uploadCover(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
@@ -106,19 +111,16 @@
     set = next;
   }
 
-  async function removePhoto(photoId: string) {
-    await deletePhoto(db, photoId);
-    revokePhotoUrl(photoId);
+  async function removeMedia(item: MediaItem) {
+    if (item.kind === 'photo') {
+      await deletePhoto(db, item.id);
+      revokePhotoUrl(item.id);
+    } else {
+      await deleteVideo(db, item.id);
+    }
     await load();
     // Closing goes through history, because the viewer added its own entry there.
-    if (photoIds.length === 0) history.back();
-  }
-
-  async function removeVideo(videoId: string) {
-    await deleteVideo(db, videoId);
-    await load();
-    // Closing goes through history, because the player added its own entry there.
-    history.back();
+    if (media.length === 0) history.back();
   }
 
   async function removeSet() {
@@ -126,7 +128,7 @@
     const target = isWish ? 'wishlist' : 'collection';
     await deleteSet(db, set.id);
     discardBuildTimer(set.id);
-    photoIds.forEach(revokePhotoUrl);
+    media.forEach((item) => item.kind === 'photo' && revokePhotoUrl(item.id));
     replaceRoute({ page: target });
   }
 
@@ -250,7 +252,7 @@
                   </button>
                 {/each}
                 {#each entry.videoIds as videoId (videoId)}
-                  <VideoTile id={videoId} onopen={() => (playingVideoId = videoId)} />
+                  <VideoTile id={videoId} onopen={() => openViewer(videoId)} />
                 {/each}
               </div>
             {/if}
@@ -260,21 +262,15 @@
     {/if}
   </div>
 
-  {#if viewerIndex !== null && photoIds.length > 0}
-    <PhotoViewer
-      {photoIds}
+  {#if viewerIndex !== null && media.length > 0}
+    <MediaViewer
+      items={media}
       startIndex={viewerIndex}
       coverId={set.coverPhotoId}
       onclose={() => (viewerIndex = null)}
       onsetcover={setCover}
-      ondelete={removePhoto}
+      ondelete={removeMedia}
     />
-  {/if}
-
-  {#if playingVideoId}
-    {#key playingVideoId}
-      <VideoPlayer id={playingVideoId} onclose={() => (playingVideoId = null)} ondelete={removeVideo} />
-    {/key}
   {/if}
 
   <ConfirmDialog
