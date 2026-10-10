@@ -1,7 +1,7 @@
 {
   "name": "bricklog",
   "private": true,
-  "version": "1.10.0",
+  "version": "1.11.0",
   "nativeVersion": 2,
   "type": "module",
   "scripts": {

@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 10.10.2026:** Version 1.10.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 10.10.2026:** Version 1.11.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -126,6 +126,11 @@ Was die Kataloge enthalten:
 Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos und Videos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen, Tippen auf ein
 Video spielt es ab.
+
+Die **Stoppuhr** unter „Bautagebuch“ misst die Bauzeit: Starten, bei Unterbrechungen Pause,
+am Ende Fertig. Das öffnet einen neuen Eintrag mit vorbelegter Bauzeit. Die Uhr läuft
+weiter, wenn die App geschlossen ist, und wird erst beim Speichern des Eintrags
+zurückgesetzt. Jedes Set hat seine eigene Uhr.
 
 ## Am PC starten
 
