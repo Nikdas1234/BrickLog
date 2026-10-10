@@ -44,8 +44,8 @@ const pictures = {
   // Adaptive icon: Android combines these two layers and cuts them to shape.
   'icon-foreground.png': icon(null),
   'icon-background.png': `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="${BACKGROUND}"/></svg>`,
-  'splash.png': splash('#f6f3ee'),
-  'splash-dark.png': splash('#151517'),
+  'splash.png': splash('#f1f3f8'),
+  'splash-dark.png': splash('#0b1320'),
 };
 
 mkdirSync('assets', { recursive: true });
