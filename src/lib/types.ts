@@ -46,6 +46,7 @@ export interface LogEntry {
   section: string;
   minutes: number | null;
   photoIds: string[];
+  videoIds: string[];
   createdAt: string;
 }
 
@@ -58,9 +59,25 @@ export interface Photo {
   createdAt: string;
 }
 
+// Videos are stored as they come from the camera. They are kept as a Blob, which the
+// browser holds on disk, because a video does not fit into memory the way a photo does.
+export interface Video {
+  id: string;
+  setId: string;
+  blob: Blob;
+  // MIME type, e.g. "video/mp4".
+  type: string;
+  size: number;
+  durationSec: number | null;
+  // A still picture (JPEG) shown before the video plays; null if none could be made.
+  poster: ArrayBuffer | null;
+  createdAt: string;
+}
+
 export interface BackupData {
   sets: BrickSet[];
   entries: LogEntry[];
   photos: Photo[];
+  videos: Video[];
   manufacturers: string[];
 }

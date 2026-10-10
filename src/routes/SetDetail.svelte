@@ -1,10 +1,13 @@
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
+  import Icon from '../components/Icon.svelte';
   import PhotoImg from '../components/PhotoImg.svelte';
   import PhotoViewer from '../components/PhotoViewer.svelte';
+  import VideoPlayer from '../components/VideoPlayer.svelte';
+  import VideoTile from '../components/VideoTile.svelte';
   import { getDb } from '../lib/context';
   import { coverJobs } from '../lib/coverJobs.svelte';
-  import { deletePhoto, deleteSet, getSet, listEntries, listPhotos, putSet, replaceCover } from '../lib/db';
+  import { deletePhoto, deleteSet, deleteVideo, getSet, listEntries, listPhotos, putSet, replaceCover } from '../lib/db';
   import { euroInput, formatDate, formatEuro, formatMinutes, parseEuro, plural, todayIso } from '../lib/format';
   import { resizeToJpeg } from '../lib/photos';
   import { revokePhotoUrl } from '../lib/photoUrl';
@@ -21,6 +24,7 @@
   let entries = $state.raw<LogEntry[]>([]);
   let photoIds = $state.raw<string[]>([]);
   let viewerIndex = $state<number | null>(null);
+  let playingVideoId = $state<string | null>(null);
   let confirmDelete = $state(false);
   let coverError = $state('');
 
@@ -108,6 +112,13 @@
     if (photoIds.length === 0) history.back();
   }
 
+  async function removeVideo(videoId: string) {
+    await deleteVideo(db, videoId);
+    await load();
+    // Closing goes through history, because the player added its own entry there.
+    history.back();
+  }
+
   async function removeSet() {
     if (!set) return;
     const target = isWish ? 'wishlist' : 'collection';
@@ -138,10 +149,12 @@
 </script>
 
 {#if set === null}
-  <a class="back" href={href({ page: 'collection' })}>‹ Sammlung</a>
+  <a class="back" href={href({ page: 'collection' })}><Icon name="back" size={18} />Sammlung</a>
   <p class="empty">Dieses Set gibt es nicht (mehr).</p>
 {:else if set}
-  <a class="back" href={href({ page: isWish ? 'wishlist' : 'collection' })}>‹ {isWish ? 'Wunschliste' : 'Sammlung'}</a>
+  <a class="back" href={href({ page: isWish ? 'wishlist' : 'collection' })}>
+    <Icon name="back" size={18} />{isWish ? 'Wunschliste' : 'Sammlung'}
+  </a>
 
   <div class="stack">
     <button
@@ -224,12 +237,15 @@
               </p>
             {/if}
             {#if entry.note}<p class="note">{entry.note}</p>{/if}
-            {#if entry.photoIds.length > 0}
+            {#if entry.photoIds.length + entry.videoIds.length > 0}
               <div class="photos">
                 {#each entry.photoIds as photoId (photoId)}
                   <button type="button" aria-label="Foto groß anzeigen" onclick={() => openViewer(photoId)}>
                     <PhotoImg id={photoId} alt="Foto vom {formatDate(entry.date)}" />
                   </button>
+                {/each}
+                {#each entry.videoIds as videoId (videoId)}
+                  <VideoTile id={videoId} onopen={() => (playingVideoId = videoId)} />
                 {/each}
               </div>
             {/if}
@@ -250,12 +266,18 @@
     />
   {/if}
 
+  {#if playingVideoId}
+    {#key playingVideoId}
+      <VideoPlayer id={playingVideoId} onclose={() => (playingVideoId = null)} ondelete={removeVideo} />
+    {/key}
+  {/if}
+
   <ConfirmDialog
     bind:open={confirmDelete}
     title={isWish ? 'Wunsch löschen?' : 'Set löschen?'}
     message={isWish
       ? `„${set.name}“ von der Wunschliste löschen? Das lässt sich nicht rückgängig machen.`
-      : `Set „${set.name}“ mit allen Einträgen und Fotos löschen? Das lässt sich nicht rückgängig machen.`}
+      : `Set „${set.name}“ mit allen Einträgen, Fotos und Videos löschen? Das lässt sich nicht rückgängig machen.`}
     confirmLabel="Löschen"
     danger
     onconfirm={removeSet}

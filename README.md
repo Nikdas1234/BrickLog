@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 10.10.2026:** Version 1.9.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 10.10.2026:** Version 1.10.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -75,10 +75,16 @@ Neuinstallieren ersetzen; vorher Sicherung exportieren. Den Ordner nie weitergeb
 ## Was man wissen muss
 
 **Die Datensicherung ist Handarbeit.** Wer die App deinstalliert oder in den
-Android-Einstellungen ihre Daten löscht, löscht Sammlung und Fotos. Die App erinnert nicht
-ans Sichern. Regelmäßig unter *Einstellungen → Sicherung exportieren* eine ZIP-Datei
+Android-Einstellungen ihre Daten löscht, löscht Sammlung, Fotos und Videos. Die App erinnert
+nicht ans Sichern. Regelmäßig unter *Einstellungen → Sicherung exportieren* eine ZIP-Datei
 erzeugen und im Teilen-Dialog in „Eigene Dateien“ oder auf Google Drive ablegen.
 *Sicherung einspielen* ersetzt den gesamten Bestand durch den Inhalt der Datei.
+
+**Videos brauchen Platz.** Ein Video wird so gespeichert, wie die Kamera es liefert, also
+rund 100 bis 150 MB je Minute; verkleinert wird es nicht, weil das auf dem Handy Minuten
+dauern würde. Ein einzelnes Video darf höchstens 1 GB groß sein. Die Sicherung enthält die
+Videos und wird entsprechend groß; sie fasst höchstens rund 3,9 GB (Grenze des
+ZIP-Formats). Wie viel die App gerade belegt, steht unter *Einstellungen*.
 
 ## Bedienung in Kürze
 
@@ -117,8 +123,9 @@ Was die Kataloge enthalten:
   auszulesen. Die Android-App lädt sie trotzdem, die Web-App lässt das Titelbild leer.
 - Es sind Abzüge der Shops. Sets, die ein Shop nicht mehr führt, fehlen darin.
 
-Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos
-anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
+Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos und Videos
+anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen, Tippen auf ein
+Video spielt es ab.
 
 ## Am PC starten
 

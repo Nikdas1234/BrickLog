@@ -1,12 +1,14 @@
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
+  import Icon from '../components/Icon.svelte';
+  import MediaPicker, { type PendingPhoto, type PendingVideo } from '../components/MediaPicker.svelte';
   import PhotoImg from '../components/PhotoImg.svelte';
-  import PhotoPicker, { type PendingPhoto } from '../components/PhotoPicker.svelte';
+  import VideoTile from '../components/VideoTile.svelte';
   import { getDb } from '../lib/context';
-  import { deleteEntry, deletePhoto, getEntry, getSet, saveEntryWithPhotos } from '../lib/db';
+  import { deleteEntry, deletePhoto, deleteVideo, getEntry, getSet, saveEntryWithMedia } from '../lib/db';
   import { parseCount, todayIso } from '../lib/format';
   import { revokePhotoUrl } from '../lib/photoUrl';
-  import type { LogEntry, Photo } from '../lib/types';
+  import type { LogEntry, Photo, Video } from '../lib/types';
 
   let { setId, entryId }: { setId: string; entryId: string | null } = $props();
 
@@ -17,8 +19,11 @@
   let setName = $state('');
   let minutes = $state('');
   let originalPhotoIds: string[] = [];
+  let originalVideoIds: string[] = [];
   let keptPhotoIds = $state<string[]>([]);
-  let pending = $state.raw<PendingPhoto[]>([]);
+  let keptVideoIds = $state<string[]>([]);
+  let pendingPhotos = $state.raw<PendingPhoto[]>([]);
+  let pendingVideos = $state.raw<PendingVideo[]>([]);
   let busy = $state(false);
   let saving = $state(false);
   let errors = $state<{ date?: string; minutes?: string; save?: string }>({});
@@ -40,11 +45,14 @@
       section: '',
       minutes: null,
       photoIds: [],
+      videoIds: [],
       createdAt: new Date().toISOString(),
     };
     minutes = loaded.minutes?.toString() ?? '';
     originalPhotoIds = [...loaded.photoIds];
+    originalVideoIds = [...loaded.videoIds];
     keptPhotoIds = [...loaded.photoIds];
+    keptVideoIds = [...loaded.videoIds];
     entry = loaded;
   }
   load();
@@ -66,9 +74,10 @@
       ...$state.snapshot(entry),
       section: entry.section.trim(),
       minutes: parsedMinutes,
-      photoIds: [...keptPhotoIds, ...pending.map((p) => p.id)],
+      photoIds: [...keptPhotoIds, ...pendingPhotos.map((p) => p.id)],
+      videoIds: [...keptVideoIds, ...pendingVideos.map((v) => v.id)],
     };
-    const newPhotos: Photo[] = pending.map((p) => ({
+    const newPhotos: Photo[] = pendingPhotos.map((p) => ({
       id: p.id,
       setId: next.setId,
       data: p.data,
@@ -76,9 +85,19 @@
       height: p.height,
       createdAt: stamp,
     }));
+    const newVideos: Video[] = pendingVideos.map((v) => ({
+      id: v.id,
+      setId: next.setId,
+      blob: v.file,
+      type: v.type,
+      size: v.size,
+      durationSec: v.durationSec,
+      poster: v.poster,
+      createdAt: stamp,
+    }));
 
     try {
-      await saveEntryWithPhotos(db, next, newPhotos);
+      await saveEntryWithMedia(db, next, newPhotos, newVideos);
     } catch {
       errors = { save: 'Speichern fehlgeschlagen – möglicherweise ist der Speicher voll.' };
       saving = false;
@@ -88,7 +107,11 @@
       await deletePhoto(db, photoId);
       revokePhotoUrl(photoId);
     }
-    pending.forEach((p) => URL.revokeObjectURL(p.url));
+    for (const videoId of originalVideoIds.filter((v) => !keptVideoIds.includes(v))) {
+      await deleteVideo(db, videoId);
+    }
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url));
+    pendingVideos.forEach((v) => v.posterUrl && URL.revokeObjectURL(v.posterUrl));
     history.back();
   }
 
@@ -135,29 +158,48 @@
     </label>
 
     <div class="field">
-      <span class="label">Fotos</span>
-      {#if keptPhotoIds.length > 0}
+      <span class="label">Fotos und Videos</span>
+      {#if keptPhotoIds.length + keptVideoIds.length > 0}
         <ul class="existing">
           {#each keptPhotoIds as photoId (photoId)}
             <li>
               <PhotoImg id={photoId} alt="Gespeichertes Foto" />
               <button
                 type="button"
+                class="remove"
                 aria-label="Foto entfernen"
-                onclick={() => (keptPhotoIds = keptPhotoIds.filter((p) => p !== photoId))}>×</button
+                onclick={() => (keptPhotoIds = keptPhotoIds.filter((p) => p !== photoId))}
               >
+                <Icon name="close" size={18} />
+              </button>
+            </li>
+          {/each}
+          {#each keptVideoIds as videoId (videoId)}
+            <li>
+              <VideoTile id={videoId}>
+                <button
+                  type="button"
+                  class="remove"
+                  aria-label="Video entfernen"
+                  onclick={() => (keptVideoIds = keptVideoIds.filter((v) => v !== videoId))}
+                >
+                  <Icon name="close" size={18} />
+                </button>
+              </VideoTile>
             </li>
           {/each}
         </ul>
       {/if}
-      <PhotoPicker bind:photos={pending} bind:busy />
+      <MediaPicker bind:photos={pendingPhotos} bind:videos={pendingVideos} bind:busy />
     </div>
 
     {#if errors.save}<p class="notice bad" role="alert">{errors.save}</p>{/if}
 
     <div class="form-actions">
       <button type="button" class="btn" onclick={() => history.back()}>Abbrechen</button>
-      <button type="submit" class="btn primary" disabled={saving || busy}>Speichern</button>
+      <button type="submit" class="btn primary" disabled={saving || busy}>
+        {saving && pendingVideos.length > 0 ? 'Speichert …' : 'Speichern'}
+      </button>
     </div>
 
     {#if entryId}
@@ -168,7 +210,7 @@
   <ConfirmDialog
     bind:open={confirmDelete}
     title="Eintrag löschen?"
-    message="Der Eintrag wird mit seinen Fotos gelöscht. Das lässt sich nicht rückgängig machen."
+    message="Der Eintrag wird mit seinen Fotos und Videos gelöscht. Das lässt sich nicht rückgängig machen."
     confirmLabel="Löschen"
     danger
     onconfirm={remove}
@@ -178,8 +220,8 @@
 <style>
   .existing {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -189,21 +231,21 @@
     position: relative;
     aspect-ratio: 1;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 14px;
   }
 
-  .existing button {
+  .remove {
     position: absolute;
     top: 0;
     right: 0;
+    display: grid;
+    place-items: center;
     width: 44px;
     height: 44px;
     border: 0;
     background: none;
-    color: #fff;
-    font-size: 1.5rem;
-    line-height: 1;
-    text-shadow: 0 0 6px #000, 0 0 2px #000;
+    color: #ffffff;
+    filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.9));
     cursor: pointer;
   }
 </style>

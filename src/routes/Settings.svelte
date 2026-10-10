@@ -1,11 +1,12 @@
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
-  import { BackupFormatError, backupFileName, buildBackupZip, restoreBackup } from '../lib/backup';
+  import Icon from '../components/Icon.svelte';
+  import { BackupFormatError, BackupTooLargeError, backupFileName, restoreBackup, writeBackupZip } from '../lib/backup';
   import { getDb } from '../lib/context';
   import { exportAll, getManufacturers, setManufacturers } from '../lib/db';
-  import { plural, todayIso } from '../lib/format';
+  import { formatBytes, plural, todayIso } from '../lib/format';
   import { revokeAllPhotoUrls } from '../lib/photoUrl';
-  import { isNativeApp, saveFile } from '../lib/saveFile';
+  import { isNativeApp, openFileSink } from '../lib/saveFile';
 
   const db = getDb();
   const version = __BUILD__ > 0 ? `${__APP_VERSION__} (Bau ${__BUILD__})` : __APP_VERSION__;
@@ -13,39 +14,73 @@
   let manufacturers = $state.raw<string[]>([]);
   let newManufacturer = $state('');
   let working = $state(false);
+  // Share of the backup written so far, 0 to 100; null while nothing is being written.
+  let progress = $state<number | null>(null);
   let message = $state<{ text: string; bad: boolean } | null>(null);
-  let pendingRestore = $state.raw<Uint8Array | null>(null);
+  // The picked file is only referenced here, not read into memory.
+  let pendingRestore = $state.raw<Blob | null>(null);
   let confirmRestore = $state(false);
+  let usedBytes = $state<number | null>(null);
 
   getManufacturers(db).then((list) => (manufacturers = list));
+
+  function measureStorage() {
+    void navigator.storage
+      ?.estimate?.()
+      .then((estimate) => (usedBytes = estimate.usage ?? null))
+      .catch(() => {});
+  }
+  measureStorage();
+
+  const counted = (sets: number, photos: number, videos: number) =>
+    [plural(sets, 'Set', 'Sets'), plural(photos, 'Foto', 'Fotos'), ...(videos > 0 ? [plural(videos, 'Video', 'Videos')] : [])].join(
+      ', ',
+    );
 
   async function exportBackup() {
     working = true;
     message = null;
     try {
       const data = await exportAll(db);
-      const zipped = await buildBackupZip(data, new Date().toISOString());
-      const result = await saveFile(zipped, backupFileName(todayIso()), 'application/zip');
-      const counts = `${plural(data.sets.length, 'Set', 'Sets')}, ${plural(data.photos.length, 'Foto', 'Fotos')}`;
+      const total =
+        data.photos.reduce((sum, p) => sum + p.data.byteLength, 0) + data.videos.reduce((sum, v) => sum + v.blob.size, 0);
+      const sink = await openFileSink(backupFileName(todayIso()), 'application/zip');
+      let written = 0;
+      progress = 0;
+      await writeBackupZip(data, new Date().toISOString(), async (chunk) => {
+        await sink.write(chunk);
+        written += chunk.length;
+        progress = total > 0 ? Math.min(100, Math.round((written / total) * 100)) : 100;
+      });
+      progress = null;
+      const result = await sink.finish();
+      const counts = counted(data.sets.length, data.photos.length, data.videos.length);
       message =
         result === 'cancelled'
           ? { text: 'Die Sicherung wurde erstellt, aber nirgends abgelegt. Exportiere sie noch einmal.', bad: true }
           : result === 'shared'
             ? { text: `Sicherung erstellt und weitergegeben: ${counts}.`, bad: false }
             : { text: `Sicherung erstellt: ${counts}. Die Datei liegt im Download-Ordner.`, bad: false };
-    } catch {
-      message = { text: 'Die Sicherung konnte nicht erstellt werden.', bad: true };
+    } catch (error) {
+      message = {
+        text:
+          error instanceof BackupTooLargeError
+            ? `Die Sicherung wäre ${formatBytes(error.bytes)} groß, eine Sicherungsdatei fasst höchstens rund 3,9 GB. Lösche einige Videos oder kürze sie.`
+            : 'Die Sicherung konnte nicht erstellt werden. Möglicherweise reicht der freie Speicher nicht.',
+        bad: true,
+      };
     }
+    progress = null;
     working = false;
   }
 
-  async function pickRestoreFile(event: Event) {
+  function pickRestoreFile(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
     message = null;
-    pendingRestore = new Uint8Array(await file.arrayBuffer());
+    pendingRestore = file;
     confirmRestore = true;
   }
 
@@ -56,7 +91,8 @@
       const result = await restoreBackup(db, pendingRestore);
       revokeAllPhotoUrls();
       manufacturers = await getManufacturers(db);
-      message = { text: `Sicherung eingespielt: ${plural(result.sets, 'Set', 'Sets')}, ${plural(result.photos, 'Foto', 'Fotos')}.`, bad: false };
+      measureStorage();
+      message = { text: `Sicherung eingespielt: ${counted(result.sets, result.photos, result.videos)}.`, bad: false };
     } catch (error) {
       message = {
         text:
@@ -90,19 +126,29 @@
     <p class="muted small">
       {#if isNativeApp}
         Deine Daten liegen nur auf diesem Handy. Wer die App deinstalliert oder in den Android-Einstellungen ihre
-        Daten löscht, löscht auch Sammlung und Fotos. Exportiere regelmäßig eine Sicherung und lege sie im
+        Daten löscht, löscht auch Sammlung, Fotos und Videos. Exportiere regelmäßig eine Sicherung und lege sie im
         Teilen-Dialog woanders ab, z. B. in „Eigene Dateien“ oder Google Drive.
       {:else}
         Deine Daten liegen nur in diesem Browser. Wer in Chrome die Websitedaten löscht oder die App deinstalliert,
-        löscht auch Sammlung und Fotos. Exportiere regelmäßig eine Sicherung und lege sie woanders ab.
+        löscht auch Sammlung, Fotos und Videos. Exportiere regelmäßig eine Sicherung und lege sie woanders ab.
       {/if}
     </p>
+    {#if usedBytes !== null}
+      <p class="small">
+        Belegter Speicher: <strong>{formatBytes(usedBytes)}</strong>
+        <span class="muted">· Die Sicherung wird ähnlich groß; Videos machen den größten Teil aus.</span>
+      </p>
+    {/if}
     <button type="button" class="btn primary wide" disabled={working} onclick={exportBackup}>Sicherung exportieren</button>
     <label class="btn wide" aria-disabled={working}>
       Sicherung einspielen
       <input type="file" accept=".zip,application/zip" onchange={pickRestoreFile} disabled={working} hidden />
     </label>
-    {#if working}<p class="muted small">Bitte warten …</p>{/if}
+    {#if working}
+      <p class="muted small" role="status">
+        {progress !== null ? `Sicherung wird geschrieben … ${progress} %` : 'Bitte warten …'}
+      </p>
+    {/if}
     {#if message}<p class="notice" class:bad={message.bad} role="status">{message.text}</p>{/if}
   </section>
 
@@ -120,8 +166,10 @@
             type="button"
             class="remove"
             aria-label="{name} entfernen"
-            onclick={() => saveManufacturers(manufacturers.filter((m) => m !== name))}>×</button
+            onclick={() => saveManufacturers(manufacturers.filter((m) => m !== name))}
           >
+            <Icon name="close" size={18} />
+          </button>
         </li>
       {/each}
     </ul>
@@ -167,9 +215,9 @@
     height: 44px;
     border: 0;
     background: none;
+    display: grid;
+    place-items: center;
     color: var(--muted);
-    font-size: 1.5rem;
-    line-height: 1;
     cursor: pointer;
   }
 

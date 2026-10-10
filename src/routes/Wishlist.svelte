@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '../components/Icon.svelte';
   import WishRow from '../components/WishRow.svelte';
   import { getDb } from '../lib/context';
   import { coverJobs } from '../lib/coverJobs.svelte';
@@ -46,7 +47,7 @@
   </div>
 {/if}
 
-<a class="fab" href={href({ page: 'setForm', id: null, wish: true })} aria-label="Wunsch anlegen">+</a>
+<a class="fab" href={href({ page: 'setForm', id: null, wish: true })} aria-label="Wunsch anlegen"><Icon name="plus" size={28} /></a>
 
 <style>
   .summary {

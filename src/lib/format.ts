@@ -44,6 +44,28 @@ export function formatMinutes(minutes: number): string {
   return min === 0 ? `${h} h` : `${h} h ${min} min`;
 }
 
+// Length of a video: 75 → '1:15'
+export function formatDuration(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  const h = Math.floor(s / 3600);
+  const min = Math.floor((s % 3600) / 60);
+  const sec = (s % 60).toString().padStart(2, '0');
+  return h > 0 ? `${h}:${min.toString().padStart(2, '0')}:${sec}` : `${min}:${sec}`;
+}
+
+// Size of a file: 1536 → '1,5 kB'
+export function formatBytes(bytes: number): string {
+  const units = ['B', 'kB', 'MB', 'GB'];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  const digits = unit === 0 || value >= 100 ? 0 : 1;
+  return `${value.toFixed(digits).replace('.', ',')} ${units[unit]}`;
+}
+
 // plural(1, 'Foto', 'Fotos') → '1 Foto'
 export function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '../components/Icon.svelte';
   import SetCard from '../components/SetCard.svelte';
   import { getDb } from '../lib/context';
   import { coverJobs } from '../lib/coverJobs.svelte';
@@ -69,7 +70,7 @@
   {/if}
 {/if}
 
-<a class="fab" href={href({ page: 'setForm', id: null, wish: false })} aria-label="Set anlegen">+</a>
+<a class="fab" href={href({ page: 'setForm', id: null, wish: false })} aria-label="Set anlegen"><Icon name="plus" size={28} /></a>
 
 <style>
   .filters {
