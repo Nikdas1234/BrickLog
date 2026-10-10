@@ -24,11 +24,12 @@
 {#if url}
   <img src={url} {alt} class:contain />
 {:else}
+  <!-- Without a photo: the brick from the logo, toned down. -->
   <div class="placeholder" aria-hidden="true">
-    <svg viewBox="0 0 48 48" width="40" height="40">
-      <rect x="8" y="18" width="32" height="20" rx="3" />
-      <rect x="13" y="11" width="8" height="7" rx="2" />
-      <rect x="27" y="11" width="8" height="7" rx="2" />
+    <svg viewBox="0 0 560 360">
+      <rect y="70" width="560" height="290" rx="26" />
+      <rect x="61.600" y="0.600" width="156.800" height="75.400" rx="19" />
+      <rect x="341.600" y="0.600" width="156.800" height="75.400" rx="19" />
     </svg>
   </div>
 {/if}
@@ -51,10 +52,12 @@
   .placeholder {
     display: grid;
     place-items: center;
-    background: var(--chip);
+    background: linear-gradient(150deg, color-mix(in srgb, var(--navy) 12%, var(--surface)), var(--chip));
   }
 
   svg {
-    fill: var(--border);
+    width: 34%;
+    max-width: 72px;
+    fill: color-mix(in srgb, var(--gold) 70%, var(--chip));
   }
 </style>

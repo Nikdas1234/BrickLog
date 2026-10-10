@@ -34,11 +34,13 @@
 <style>
   .banner {
     display: grid;
-    gap: 10px;
-    margin-bottom: 16px;
-    padding: 14px 16px;
-    border: 1px solid var(--accent);
-    border-radius: 14px;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
     background: var(--surface);
+    box-shadow: var(--shadow);
   }
 </style>

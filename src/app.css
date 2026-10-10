@@ -1,14 +1,30 @@
+/* Colours follow the logo: a golden brick on deep navy. In the light theme navy carries
+   the actions and gold the highlights; in the dark theme gold takes over the actions,
+   because navy would disappear on the dark page. */
 :root {
-  --bg: #f6f3ee;
+  --navy: #1d3557;
+  --navy-deep: #152844;
+  --gold: #f4b942;
+  --gold-deep: #dd9f24;
+
+  --bg: #f1f3f8;
   --surface: #ffffff;
-  --text: #1f1d1a;
-  --muted: #6b665e;
-  --border: #e2ddd4;
-  --accent: #c8442b;
-  --accent-text: #ffffff;
-  --danger: #b3261e;
-  --chip: #ece7de;
-  --tab-height: 60px;
+  --text: #132238;
+  --muted: #5d6b80;
+  --border: #dde3ec;
+  --chip: #e7ebf3;
+  --primary: var(--navy);
+  --on-primary: #ffffff;
+  --accent: var(--gold);
+  --on-accent: var(--navy-deep);
+  --link: var(--navy);
+  --danger: #b93a2f;
+  --shadow: 0 1px 2px rgb(19 34 56 / 0.05), 0 8px 24px rgb(19 34 56 / 0.07);
+  --shadow-strong: 0 2px 6px rgb(19 34 56 / 0.12), 0 14px 32px rgb(19 34 56 / 0.18);
+
+  --radius: 18px;
+  --radius-small: 12px;
+  --tab-height: 64px;
   /* Space taken by status bar and navigation bar. Inside the Android app the page is
      drawn behind them; Capacitor supplies the --safe-area-inset-* values for WebViews
      that do not report env() yet. */
@@ -19,15 +35,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #151517;
-    --surface: #1f2023;
-    --text: #ecebe8;
-    --muted: #a09d97;
-    --border: #34353b;
-    --accent: #ef6a4e;
-    --accent-text: #1a0d09;
-    --danger: #f2847b;
-    --chip: #2a2b30;
+    --bg: #0b1320;
+    --surface: #142036;
+    --text: #eef2f8;
+    --muted: #93a2b9;
+    --border: #243452;
+    --chip: #1d2c49;
+    --primary: var(--gold);
+    --on-primary: var(--navy-deep);
+    --link: var(--gold);
+    --danger: #ff8f80;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.3);
+    --shadow-strong: 0 2px 6px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.5);
     color-scheme: dark;
   }
 }
@@ -44,7 +63,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   overflow-wrap: anywhere;
 }
 
@@ -56,16 +77,20 @@ p {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
 }
 
 img {
@@ -80,7 +105,7 @@ img {
 }
 
 .page.with-tabs {
-  padding-bottom: calc(var(--tab-height) + 96px + var(--inset-bottom));
+  padding-bottom: calc(var(--tab-height) + 104px + var(--inset-bottom));
 }
 
 .page-head {
@@ -88,15 +113,15 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .back {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  margin: -8px 0 4px;
-  font-weight: 600;
+  margin: -8px 0 6px;
+  font-weight: 650;
   text-decoration: none;
 }
 
@@ -108,17 +133,33 @@ img {
   font-size: 0.875rem;
 }
 
+/* An empty list shows the logo above its message. */
 .empty {
-  padding: 48px 16px;
+  padding: 40px 24px 48px;
   text-align: center;
   color: var(--muted);
+}
+
+.empty::before {
+  content: '';
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 18px;
+  border-radius: 22px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Crect x='232' y='452' width='560' height='290' rx='26' fill='%23f4b942'/%3E%3Crect x='293.600' y='382.600' width='156.800' height='75.400' rx='19' fill='%23f4b942'/%3E%3Crect x='573.600' y='382.600' width='156.800' height='75.400' rx='19' fill='%23f4b942'/%3E%3Crect x='232' y='652' width='560' height='90' rx='26' fill='%23dd9f24'/%3E%3Crect x='232' y='652' width='560' height='40' fill='%23dd9f24'/%3E%3C/svg%3E")
+      center / cover,
+    var(--navy);
+  box-shadow: var(--shadow);
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
 }
 
 .stack {
@@ -129,7 +170,7 @@ img {
 .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* Buttons */
@@ -138,32 +179,41 @@ img {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    filter 0.15s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.975);
 }
 
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
 .btn.danger {
-  border-color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
   color: var(--danger);
 }
 
 .btn.danger.solid {
   background: var(--danger);
-  color: var(--surface);
+  border-color: var(--danger);
+  color: #ffffff;
 }
 
 .btn.wide {
@@ -172,24 +222,31 @@ img {
 
 .btn:disabled {
   opacity: 0.5;
+  box-shadow: none;
   cursor: default;
 }
 
 .fab {
   position: fixed;
-  right: max(16px, calc(50vw - 304px));
-  bottom: calc(var(--tab-height) + 16px + var(--inset-bottom));
-  width: 56px;
-  height: 56px;
+  right: max(18px, calc(50vw - 302px));
+  bottom: calc(var(--tab-height) + 18px + var(--inset-bottom));
+  width: 60px;
+  height: 60px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 2rem;
+  border-radius: 20px;
+  background: linear-gradient(160deg, var(--gold), var(--gold-deep));
+  color: var(--on-accent);
+  font-size: 2.125rem;
+  font-weight: 400;
   line-height: 1;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 0.28);
+  box-shadow: var(--shadow-strong);
+  transition: transform 0.08s ease;
+}
+
+.fab:active {
+  transform: scale(0.95);
 }
 
 /* Forms */
@@ -200,8 +257,9 @@ img {
 
 .field > span,
 .label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
   color: var(--muted);
 }
 
@@ -209,43 +267,62 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-small);
   background: var(--surface);
   color: var(--text);
   font: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
 }
 
 textarea {
-  min-height: 96px;
+  min-height: 104px;
   resize: vertical;
 }
 
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
 .btn:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--accent);
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 80%, transparent);
   outline-offset: 2px;
 }
 
 .error {
   color: var(--danger);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .notice {
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 13px 16px;
+  border-radius: var(--radius-small);
   background: var(--chip);
   font-size: 0.9375rem;
 }
 
 .notice.bad {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
   color: var(--danger);
 }
 
@@ -265,4 +342,16 @@ a:focus-visible {
 .price {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+/* A small rounded label, e.g. the manufacturer on a set page. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 650;
 }

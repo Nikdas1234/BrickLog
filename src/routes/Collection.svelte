@@ -3,6 +3,7 @@
   import { getDb } from '../lib/context';
   import { coverJobs } from '../lib/coverJobs.svelte';
   import { listSets } from '../lib/db';
+  import { plural } from '../lib/format';
   import { href } from '../lib/router';
   import { filterSets, suggestions } from '../lib/sets';
   import type { BrickSet } from '../lib/types';
@@ -35,11 +36,6 @@
   );
 </script>
 
-<header class="page-head">
-  <h1>Sammlung</h1>
-  {#if sets && sets.length > 0}<span class="muted small">{visible.length} von {sets.length}</span>{/if}
-</header>
-
 {#if sets === null}
   <p class="empty">Lade …</p>
 {:else if sets.length === 0}
@@ -57,6 +53,11 @@
         {#each themes as t (t)}<option value={t}>{t}</option>{/each}
       </select>
     </div>
+    <p class="muted small count">
+      {visible.length === sets.length
+        ? plural(sets.length, 'Set', 'Sets')
+        : `${visible.length} von ${plural(sets.length, 'Set', 'Sets')}`}
+    </p>
   </div>
 
   {#if visible.length === 0}
@@ -73,25 +74,31 @@
 <style>
   .filters {
     display: grid;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 18px;
   }
 
   .selects {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 10px;
   }
 
   .selects select {
-    padding-inline: 8px;
+    min-height: 42px;
+    padding-block: 8px;
     font-size: 0.875rem;
     text-overflow: ellipsis;
+  }
+
+  .count {
+    margin: 4px 2px 0;
+    font-weight: 650;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
+    gap: 14px;
   }
 </style>

@@ -156,8 +156,8 @@
     {#if coverJobs.pending.includes(set.id)}<p class="muted small" role="status">Titelbild wird geladen …</p>{/if}
 
     <div class="title">
+      {#if set.manufacturer}<span class="pill">{set.manufacturer}</span>{/if}
       <h1>{set.name}</h1>
-      {#if set.manufacturer}<p class="muted">{set.manufacturer}</p>{/if}
     </div>
 
     {#if isWish}
@@ -282,8 +282,9 @@
     padding: 0;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 22px;
     background: none;
+    box-shadow: var(--shadow);
     cursor: pointer;
   }
 
@@ -293,19 +294,25 @@
 
   .title {
     display: grid;
-    gap: 2px;
+    gap: 8px;
+    justify-items: start;
   }
 
   dl {
     display: grid;
-    gap: 10px;
     margin: 0;
+    padding-block: 6px;
   }
 
   dl div {
     display: flex;
     justify-content: space-between;
     gap: 16px;
+    padding: 11px 0;
+  }
+
+  dl div + div {
+    border-top: 1px solid var(--border);
   }
 
   dt {
@@ -315,7 +322,7 @@
   dd {
     margin: 0;
     text-align: right;
-    font-weight: 600;
+    font-weight: 650;
   }
 
   .note {
@@ -327,9 +334,11 @@
     align-items: flex-end;
   }
 
+  /* A golden edge ties the diary entries together like a spine. */
   .entry {
     display: grid;
     gap: 8px;
+    border-left: 5px solid var(--gold);
   }
 
   .entry header {
@@ -344,7 +353,8 @@
     align-items: center;
     min-height: 44px;
     margin: -12px 0;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 650;
     text-decoration: none;
   }
 

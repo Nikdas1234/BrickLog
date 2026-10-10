@@ -14,7 +14,9 @@
 <nav aria-label="Bereiche">
   {#each tabs as tab (tab.page)}
     <a href={href({ page: tab.page })} aria-current={current === tab.page ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d={tab.icon} /></svg>
+      <span class="icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={tab.icon} /></svg>
+      </span>
       <span>{tab.label}</span>
     </a>
   {/each}
@@ -28,23 +30,40 @@
     grid-template-columns: repeat(4, 1fr);
     height: calc(var(--tab-height) + var(--inset-bottom));
     padding-bottom: var(--inset-bottom);
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(14px);
     border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 20px rgb(19 34 56 / 0.06);
   }
 
   a {
     display: grid;
     place-content: center;
     justify-items: center;
-    gap: 2px;
+    gap: 3px;
     color: var(--muted);
     font-size: 0.6875rem;
-    font-weight: 600;
+    font-weight: 650;
     text-decoration: none;
   }
 
+  /* The current page gets the logo's gold as a pill behind its icon. */
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 30px;
+    border-radius: 15px;
+    transition: background-color 0.2s ease;
+  }
+
   a[aria-current='page'] {
-    color: var(--accent);
+    color: var(--text);
+  }
+
+  a[aria-current='page'] .icon {
+    background: var(--gold);
+    color: var(--navy-deep);
   }
 
   svg {

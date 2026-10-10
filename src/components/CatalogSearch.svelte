@@ -66,9 +66,12 @@
 </div>
 
 <style>
+  /* Slightly tinted, so the shortcut stands apart from the form below it. */
   .catalog {
     display: grid;
     gap: 10px;
+    background: color-mix(in srgb, var(--gold) 9%, var(--surface));
+    border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
   }
 
   ul {

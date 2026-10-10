@@ -33,8 +33,8 @@ export default defineConfig(({ command, mode }) => ({
         display: 'standalone',
         start_url: '.',
         scope: '.',
-        theme_color: '#c8442b',
-        background_color: '#f6f3ee',
+        theme_color: '#1d3557',
+        background_color: '#f1f3f8',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },

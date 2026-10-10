@@ -45,20 +45,22 @@
 <style>
   dialog {
     width: min(100vw - 32px, 420px);
-    padding: 20px;
+    padding: 24px;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 24px;
     background: var(--surface);
     color: var(--text);
+    box-shadow: var(--shadow-strong);
   }
 
   dialog[open] {
     display: grid;
-    gap: 14px;
+    gap: 16px;
   }
 
   dialog::backdrop {
-    background: rgb(0 0 0 / 0.5);
+    background: rgb(11 19 32 / 0.6);
+    backdrop-filter: blur(3px);
   }
 
   .actions {

@@ -16,10 +16,6 @@
 
 </script>
 
-<header class="page-head">
-  <h1>Statistik</h1>
-</header>
-
 {#if stats === null}
   <p class="empty">Lade …</p>
 {:else if empty}
@@ -81,17 +77,29 @@
   .tiles {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
   }
 
   .tile {
     display: grid;
-    gap: 4px;
+    gap: 6px;
+  }
+
+  /* A short golden bar marks each figure, like a knob on a brick. */
+  .tile::before {
+    content: '';
+    width: 30px;
+    height: 5px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    background: var(--gold);
   }
 
   .tile strong {
-    font-size: 1.375rem;
+    font-size: 1.5rem;
+    font-weight: 750;
     line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   section {
@@ -99,22 +107,26 @@
     gap: 12px;
   }
 
-
   table {
     width: 100%;
     border-collapse: collapse;
   }
 
   th {
-    padding: 0 0 6px;
+    padding: 0 0 8px;
     color: var(--muted);
     font-size: 0.8125rem;
+    font-weight: 650;
     text-align: left;
   }
 
   td {
-    padding: 8px 0;
+    padding: 11px 0;
     border-top: 1px solid var(--border);
+  }
+
+  td:first-child {
+    font-weight: 650;
   }
 
   .num {

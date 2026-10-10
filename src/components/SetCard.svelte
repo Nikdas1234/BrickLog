@@ -4,13 +4,17 @@
   import PhotoImg from './PhotoImg.svelte';
 
   let { set }: { set: BrickSet } = $props();
+
+  const details = $derived(
+    [set.manufacturer, set.pieceCount ? `${set.pieceCount.toLocaleString('de-DE')} Teile` : ''].filter(Boolean).join(' · '),
+  );
 </script>
 
 <a class="set-card" href={href({ page: 'set', id: set.id })}>
   <div class="cover"><PhotoImg id={set.coverPhotoId} /></div>
   <div class="body">
     <strong>{set.name}</strong>
-    {#if set.manufacturer}<span class="muted small">{set.manufacturer}</span>{/if}
+    {#if details}<span class="muted small">{details}</span>{/if}
   </div>
 </a>
 
@@ -20,10 +24,16 @@
     grid-template-rows: auto 1fr;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
     text-decoration: none;
+    box-shadow: var(--shadow);
+    transition: transform 0.1s ease;
+  }
+
+  .set-card:active {
+    transform: scale(0.98);
   }
 
   .cover {
@@ -32,13 +42,13 @@
 
   .body {
     display: grid;
-    gap: 4px;
-    justify-items: start;
+    gap: 3px;
     align-content: start;
-    padding: 10px 12px 12px;
+    padding: 12px 14px 14px;
   }
 
   strong {
+    font-weight: 700;
     line-height: 1.25;
   }
 </style>

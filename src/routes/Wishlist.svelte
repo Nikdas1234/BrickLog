@@ -25,19 +25,15 @@
   const total = $derived((wishes ?? []).reduce((sum, s) => sum + (s.priceCents ?? 0), 0));
 </script>
 
-<header class="page-head">
-  <h1>Wunschliste</h1>
-</header>
-
 {#if wishes === null}
   <p class="empty">Lade …</p>
 {:else if wishes.length === 0}
-  <p class="empty">Deine Wunschliste ist leer.</p>
+  <p class="empty">Deine Wunschliste ist leer. Tippe auf +, um einen Wunsch anzulegen.</p>
 {:else}
-  <div class="summary">
+  <div class="summary card">
     <p>
+      <span class="muted small">{plural(wishes.length, 'Wunsch', 'Wünsche')} im Wert von</span>
       <strong class="price">{formatEuro(total)}</strong>
-      <span class="muted">· {plural(wishes.length, 'Wunsch', 'Wünsche')}</span>
     </p>
     <div class="toggle" role="group" aria-label="Sortierung">
       <button type="button" aria-pressed={sortBy === 'priority'} onclick={() => (sortBy = 'priority')}>Priorität</button>
@@ -58,18 +54,25 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .summary p {
+    display: grid;
   }
 
   .summary strong {
-    font-size: 1.25rem;
+    font-size: 1.625rem;
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   .toggle {
     display: flex;
-    padding: 3px;
-    border-radius: 12px;
+    padding: 4px;
+    border-radius: 14px;
     background: var(--chip);
   }
 
@@ -78,22 +81,23 @@
     min-height: 44px;
     padding: 0 14px;
     border: 0;
-    border-radius: 9px;
+    border-radius: 10px;
     background: none;
     color: var(--muted);
     font: inherit;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 650;
     cursor: pointer;
   }
 
   .toggle button[aria-pressed='true'] {
     background: var(--surface);
     color: var(--text);
+    box-shadow: 0 1px 3px rgb(19 34 56 / 0.15);
   }
 
   .list {
     display: grid;
-    gap: 8px;
+    gap: 10px;
   }
 </style>

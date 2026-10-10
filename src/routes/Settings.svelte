@@ -84,10 +84,6 @@
   }
 </script>
 
-<header class="page-head">
-  <h1>Einstellungen</h1>
-</header>
-
 <div class="stack">
   <section class="card stack">
     <h2>Sicherung</h2>
