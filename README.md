@@ -3,7 +3,7 @@
 Private Handy-App zum Dokumentieren gekaufter Klemmbaustein-Sets (BlueBrixx, Lumibricks,
 CaDA, LEGO …): Sammlung, Bautagebuch mit Fotos, Wunschliste und Statistik.
 
-**Stand 09.10.2026:** Version 1.7.0. Es gibt die App in zwei Formen mit demselben Inhalt:
+**Stand 10.10.2026:** Version 1.8.0. Es gibt die App in zwei Formen mit demselben Inhalt:
 
 | Form | Wo | Wofür |
 |---|---|---|
@@ -97,13 +97,25 @@ geladen.
 
 Was die Kataloge enthalten:
 
-- **Lumibricks** (128 Sets) aus dem Lumibricks-Shop.
-- **BlueBrixx-Shop** (1.007 Sets): 746 der Eigenmarken und 261 fremder Marken, die der
-  Shop führt (Modbrix, Cobi, Balody, BRYX …). Bei den fremden Marken ist die Nummer die
+| Katalog | Sets | Quelle | Preis | Titelbild |
+|---|---|---|---|---|
+| BlueBrixx-Shop | 1.002 | bluebrixx.com | Euro-Preis des Shops | nur Android-App |
+| Mould King | 509 | mouldkingblock.com (ein Händler) | Richtwert | nur Android-App |
+| Reobrix | 248 | reobrix.com (offizieller Shop) | Richtwert | überall |
+| Lumibricks | 128 | lumibricks.com (offizieller Shop) | Richtwert | überall |
+
+- **BlueBrixx-Shop:** 746 Sets der Eigenmarken und 256 fremder Marken, die der Shop
+  führt (Modbrix, Cobi, Balody, BRYX …). Bei den fremden Marken ist die Nummer die
   Artikelnummer im BlueBrixx-Shop, nicht die Setnummer auf dem Karton; die App weist
   darauf hin. Einzelteil-Pakete und Grundplatten sind nicht enthalten.
+- **Mould King:** Der Hersteller hat keinen eigenen Shop, der sich auslesen lässt (der
+  bekannteste weist automatische Abrufe ab). Die Daten stammen deshalb von einem Händler.
+  Bei 62 Sets nennt er keine Teilezahl, und nur knapp die Hälfte hat ein kleines
+  Vorschaubild für die Trefferliste.
+- **Richtwert** heißt: Der Shop rechnet in US-Dollar ab, der Euro-Betrag ist umgerechnet.
+- **„Nur Android-App“** heißt: Der Shop erlaubt fremden Webseiten nicht, seine Bilder
+  auszulesen. Die Android-App lädt sie trotzdem, die Web-App lässt das Titelbild leer.
 - Es sind Abzüge der Shops. Sets, die ein Shop nicht mehr führt, fehlen darin.
-- Titelbilder aus dem BlueBrixx-Shop lädt nur die Android-App, nicht die Web-App.
 
 Auf der Seite eines Sets: Titelbild setzen, Bautagebuch-Einträge mit Fotos
 anlegen. Tippen auf ein Foto öffnet die Vollbildansicht zum Durchwischen.
@@ -129,6 +141,8 @@ npm run dev
 | `npm run preview` | zeigt die fertig gebaute Web-App aus `dist` an |
 | `npm run katalog:lumibricks` | ruft den Lumibricks-Katalog neu aus dem Shop ab (rund 1 Minute) |
 | `npm run katalog:bluebrixx` | ruft den BlueBrixx-Katalog neu aus dem Shop ab (mehrere Minuten) |
+| `npm run katalog:mouldking` | ruft den Mould-King-Katalog neu ab (wenige Sekunden) |
+| `npm run katalog:reobrix` | ruft den Reobrix-Katalog neu ab (rund 3 Minuten) |
 
 Die APK selbst wird nicht am PC gebaut, sondern bei GitHub: Jeder Push auf `main` erzeugt
 eine neue, signierte `BrickLog.apk` unter der Download-Adresse oben, dazu das
@@ -141,8 +155,7 @@ pushen; die Apps holen sie sich.
 - `src/lib` — die Fachlogik ohne Oberfläche: Datenhaltung (`db.ts`), Filter und
   Sortierung (`sets.ts`), Katalogsuche, Statistik, Fotoverkleinerung, Sicherung. Dazu
   gehören die Tests in `tests`.
-- `src/data` — die Kataloge als Abzüge: Lumibricks (128 Sets) und BlueBrixx-Shop
-  (1.007 Sets), Stand jeweils in der Datei.
+- `src/data` — die vier Kataloge als Abzüge, Stand jeweils in der Datei.
 - `src/routes` — die sieben Seiten der App.
 - `src/components` — wiederverwendete Bausteine (Reiterleiste, Dialog, Fotoanzeige …).
 - `android` — das Android-Projekt, also die Hülle um die Web-App. Icons und Startbild

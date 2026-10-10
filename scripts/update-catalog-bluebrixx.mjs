@@ -9,8 +9,8 @@
 //
 // Sets of other manufacturers that the shop sells are kept too, marked with their brand.
 // Their number is the BlueBrixx article number, not the one printed on their boxes.
-// Left out: loose bricks and baseplates (part packs), and Lumibricks, which has its own
-// catalog with the real set numbers.
+// Left out: loose bricks and baseplates (part packs), and the brands that have their own
+// catalog with the real set numbers (Lumibricks, Reobrix).
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -155,7 +155,7 @@ for (const url of subUrls) {
 const skippedBrands = {};
 const entries = [];
 for (const product of products.values()) {
-  if (/part-?packs/i.test(product.brand) || /^lumibricks$/i.test(product.brand)) {
+  if (/part-?packs/i.test(product.brand) || /^(lumibricks|reobrix)$/i.test(product.brand)) {
     skippedBrands[product.brand] = (skippedBrands[product.brand] ?? 0) + 1;
     continue;
   }

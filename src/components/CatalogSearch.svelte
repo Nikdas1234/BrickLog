@@ -35,9 +35,12 @@
 
 <div class="catalog card">
   <label class="field">
-    <span>Aus dem Katalog übernehmen (BlueBrixx-Shop, Lumibricks)</span>
+    <span>Aus dem Katalog übernehmen</span>
     <input type="search" bind:value={query} placeholder="Setnummer oder Name" autocomplete="off" />
   </label>
+  {#if query.trim() === ''}
+    <p class="muted small">Enthalten: BlueBrixx-Shop, Lumibricks, Mould King, Reobrix</p>
+  {/if}
 
   {#if query.trim() !== ''}
     {#if hits.length === 0}

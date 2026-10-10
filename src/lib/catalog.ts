@@ -82,6 +82,48 @@ export function fromBlueBrixx(file: BlueBrixxFile): CatalogEntry[] {
   }));
 }
 
+// The common file format of the newer catalogs (Reobrix, Mould King). Addresses are
+// stored without their shared beginning to keep the files small.
+export interface ShopFile {
+  manufacturer: string;
+  priceEstimated: boolean;
+  imageCors: boolean;
+  imageBase: string;
+  urlBase: string;
+  // Appended to a picture address when the picture server scales on request.
+  thumbSuffix?: string;
+  imageSuffix?: string;
+  entries: {
+    number: string;
+    name: string;
+    theme: string;
+    pieces: number | null;
+    priceCents: number | null;
+    image: string | null;
+    // A ready-made small picture, for shops whose server cannot scale. Without one (and
+    // without thumbSuffix) the result list shows no picture for this set.
+    thumb?: string;
+    url: string;
+  }[];
+}
+
+export function fromShop(file: ShopFile): CatalogEntry[] {
+  return file.entries.map(({ image, thumb, url, ...entry }) => ({
+    ...entry,
+    manufacturer: file.manufacturer,
+    shopNumber: false,
+    priceEstimated: file.priceEstimated,
+    thumb: thumb
+      ? file.imageBase + thumb
+      : image && file.thumbSuffix !== undefined
+        ? file.imageBase + image + file.thumbSuffix
+        : null,
+    image: image && file.imageBase + image + (file.imageSuffix ?? ''),
+    imageCors: file.imageCors,
+    url: file.urlBase + url,
+  }));
+}
+
 let cached: Promise<CatalogEntry[]> | null = null;
 
 // Loaded on demand, so the catalogs do not slow down the app start.
@@ -89,6 +131,8 @@ export function loadCatalog(): Promise<CatalogEntry[]> {
   cached ??= Promise.all([
     import('../data/catalog-lumibricks.json').then((module) => fromLumibricks(module.default as LumibricksFile)),
     import('../data/catalog-bluebrixx.json').then((module) => fromBlueBrixx(module.default as BlueBrixxFile)),
+    import('../data/catalog-mouldking.json').then((module) => fromShop(module.default as ShopFile)),
+    import('../data/catalog-reobrix.json').then((module) => fromShop(module.default as ShopFile)),
   ]).then((catalogs) => catalogs.flat());
   return cached;
 }

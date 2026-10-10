@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { fromBlueBrixx, fromLumibricks, loadCatalog, searchCatalog, type CatalogEntry } from '../src/lib/catalog';
+import { fromBlueBrixx, fromLumibricks, fromShop, loadCatalog, searchCatalog, type CatalogEntry } from '../src/lib/catalog';
 
 const entry = (number: string, name: string, nameDe?: string): CatalogEntry => ({
   manufacturer: 'Lumibricks',
@@ -95,28 +95,72 @@ test('BlueBrixx addresses are rebuilt from the short form in the file', () => {
   expect(bare).toMatchObject({ thumb: null, image: null });
 });
 
+test('the common shop format rebuilds addresses from their shared beginning', () => {
+  const [scaled, readyMade, bare] = fromShop({
+    manufacturer: 'Reobrix',
+    priceEstimated: true,
+    imageCors: true,
+    imageBase: 'https://img.example/u/',
+    urlBase: 'https://shop.example/products/',
+    thumbSuffix: '?w=160',
+    imageSuffix: '?w=1600',
+    entries: [
+      { number: '99009', name: 'Royal Fortress', theme: 'Modular Buildings', pieces: 5508, priceCents: 33200, image: 'a/99009.webp', url: 'red-keep' },
+      { number: '10001', name: 'Racing Car', theme: 'Super Car', pieces: 928, priceCents: 4300, image: 'b/10001.jpg', thumb: 'b/10001-100x100.jpg', url: 'racing-car/' },
+      { number: '10002', name: 'Ohne Bild', theme: '', pieces: null, priceCents: null, image: null, url: 'ohne-bild' },
+    ],
+  });
+  expect(scaled).toMatchObject({
+    manufacturer: 'Reobrix',
+    shopNumber: false,
+    priceEstimated: true,
+    imageCors: true,
+    thumb: 'https://img.example/u/a/99009.webp?w=160',
+    image: 'https://img.example/u/a/99009.webp?w=1600',
+    url: 'https://shop.example/products/red-keep',
+  });
+  // A ready-made preview wins over a scaled one.
+  expect(readyMade.thumb).toBe('https://img.example/u/b/10001-100x100.jpg');
+  expect(bare).toMatchObject({ thumb: null, image: null });
+
+  // A shop whose server cannot scale shows no preview instead of the full-size picture.
+  const [unscaled] = fromShop({
+    manufacturer: 'Mould King',
+    priceEstimated: true,
+    imageCors: false,
+    imageBase: 'https://img.example/u/',
+    urlBase: 'https://shop.example/product/',
+    entries: [{ number: '10009', name: 'Truck', theme: 'Technic', pieces: 900, priceCents: 5000, image: 'c/big.png', url: 'truck/' }],
+  });
+  expect(unscaled).toMatchObject({ thumb: null, image: 'https://img.example/u/c/big.png' });
+});
+
 test('the bundled catalogs are well-formed', async () => {
   const catalog = await loadCatalog();
   const count = (manufacturer: string) => catalog.filter((e) => e.manufacturer === manufacturer).length;
   expect(count('Lumibricks')).toBeGreaterThan(100);
   expect(count('BlueBrixx')).toBeGreaterThan(500);
+  expect(count('Mould King')).toBeGreaterThan(300);
+  expect(count('Reobrix')).toBeGreaterThan(50);
   expect(new Set(catalog.map((e) => `${e.manufacturer}:${e.number}`)).size).toBe(catalog.length);
-  // Only sets of other manufacturers from the BlueBrixx shop carry a shop number.
-  for (const e of catalog) expect(e.shopNumber).toBe(e.manufacturer !== 'Lumibricks' && e.manufacturer !== 'BlueBrixx');
 
+  const SHOPS: [string, RegExp, RegExp][] = [
+    ['https://www.lumibricks.com/', /^[A-Z]?\d{4,5}\w*$/, /^https:\/\/cdn\.shopify\.com\//],
+    ['https://www.bluebrixx.com/de/prod/', /^\d{5,8}$/, /^https:\/\/www\.bluebrixx\.com\/media\//],
+    ['https://mouldkingblock.com/product/', /^[A-Z]{0,3}\d{3,6}[A-Z]?(-\d+)?$/, /^https:\/\/mouldkingblock\.com\/wp-content\/uploads\//],
+    ['https://www.reobrix.com/products/', /^[A-Z]{0,3}\d{3,6}[A-Z]?(-\d+)?$/, /^https:\/\//],
+  ];
   for (const e of catalog) {
     expect(e.name.trim()).not.toBe('');
     if (e.pieces !== null) expect(Number.isInteger(e.pieces) && e.pieces > 0).toBe(true);
     if (e.priceCents !== null) expect(Number.isInteger(e.priceCents) && e.priceCents > 0).toBe(true);
-    if (e.url.startsWith('https://www.lumibricks.com/')) {
-      expect(e.manufacturer).toBe('Lumibricks');
-      expect(e.number).toMatch(/^[A-Z]?\d{4,5}\w*$/);
-      expect(e.url).toMatch(/^https:\/\/www\.lumibricks\.com\//);
-      if (e.image !== null) expect(e.image).toMatch(/^https:\/\/cdn\.shopify\.com\//);
-    } else {
-      expect(e.number).toMatch(/^\d{5,8}$/);
-      expect(e.url).toMatch(/^https:\/\/www\.bluebrixx\.com\/de\/prod\/\d+\/[^/]+\/$/);
-      if (e.image !== null) expect(e.image).toMatch(/^https:\/\/www\.bluebrixx\.com\/media\//);
-    }
+
+    const shop = SHOPS.find(([address]) => e.url.startsWith(address));
+    expect(shop, e.url).toBeDefined();
+    expect(e.number).toMatch(shop![1]);
+    if (e.image !== null) expect(e.image).toMatch(shop![2]);
+    // Only sets of other manufacturers sold by the BlueBrixx shop carry its article
+    // number instead of their own set number.
+    expect(e.shopNumber).toBe(shop![0].includes('bluebrixx') && e.manufacturer !== 'BlueBrixx');
   }
 });

@@ -1,7 +1,7 @@
 {
   "name": "bricklog",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.8.0",
   "nativeVersion": 2,
   "type": "module",
   "scripts": {
@@ -13,7 +13,9 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "icons": "node scripts/make-app-icons.mjs && pwa-assets-generator --preset minimal-2023 public/icon.svg && capacitor-assets generate --android",
     "katalog:lumibricks": "node scripts/update-catalog-lumibricks.mjs",
-    "katalog:bluebrixx": "node scripts/update-catalog-bluebrixx.mjs"
+    "katalog:bluebrixx": "node scripts/update-catalog-bluebrixx.mjs",
+    "katalog:mouldking": "node scripts/update-catalog-mouldking.mjs",
+    "katalog:reobrix": "node scripts/update-catalog-reobrix.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
